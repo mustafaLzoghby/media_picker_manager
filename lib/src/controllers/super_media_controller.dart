@@ -6,7 +6,9 @@ import '../models/super_media_item.dart';
 import '../models/super_media_result.dart';
 import '../models/super_media_validation_error.dart';
 
+/// Owns picker state and exposes upload-ready and deletion-ready results.
 class SuperMediaController<T extends Object> extends ChangeNotifier {
+  /// Creates a controller with optional singular and plural initial API data.
   SuperMediaController({
     T? initialItem,
     Iterable<T> initialItems = const [],
@@ -20,27 +22,44 @@ class SuperMediaController<T extends Object> extends ChangeNotifier {
   final List<SuperMediaItem> _removedItems = [];
   List<SuperMediaItem> _items;
 
+  /// Immutable view of all media currently displayed by the picker.
   List<SuperMediaItem> get items => List.unmodifiable(_items);
+
+  /// Immutable view of remote items marked for API deletion.
   List<SuperMediaItem> get removedItems => List.unmodifiable(_removedItems);
+
+  /// Current upload and deletion snapshot for submitting a form.
   SuperMediaResult get result =>
       SuperMediaResult(items: items, removedItems: removedItems);
 
+  /// All currently visible image items.
   List<SuperMediaItem> get images => _items
       .where((e) => e.type == SuperMediaType.image)
       .toList(growable: false);
+
+  /// All currently visible video items.
   List<SuperMediaItem> get videos => _items
       .where((e) => e.type == SuperMediaType.video)
       .toList(growable: false);
+
+  /// All currently visible generic file items.
   List<SuperMediaItem> get files => _items
       .where((e) => e.type == SuperMediaType.file)
       .toList(growable: false);
+
+  /// Newly selected local items ready for upload.
   List<SuperMediaItem> get localItems =>
       _items.where((e) => e.isLocal).toList(growable: false);
+
+  /// Existing remote API items that have not been removed.
   List<SuperMediaItem> get remoteItems =>
       _items.where((e) => e.isRemote).toList(growable: false);
+
+  /// Sum of known file sizes for visible media.
   int get totalSizeBytes =>
       _items.fold(0, (sum, e) => sum + (e.sizeBytes ?? 0));
 
+  /// Validates [item] against type, count, size, extension, and duration rules.
   SuperMediaValidationError? validateItem(
     SuperMediaItem item,
     SuperMediaPickerConfig config, {
@@ -129,6 +148,7 @@ class SuperMediaController<T extends Object> extends ChangeNotifier {
     return null;
   }
 
+  /// Adds [item], returning a validation error instead of throwing on failure.
   SuperMediaValidationError? add(
     SuperMediaItem item, {
     required SuperMediaPickerConfig config,
@@ -149,6 +169,7 @@ class SuperMediaController<T extends Object> extends ChangeNotifier {
     return null;
   }
 
+  /// Adds each supplied item and returns every validation failure.
   List<SuperMediaValidationError> addAll(
     List<SuperMediaItem> items, {
     required SuperMediaPickerConfig config,
@@ -162,6 +183,7 @@ class SuperMediaController<T extends Object> extends ChangeNotifier {
     return errors;
   }
 
+  /// Removes [item] and tracks it when a remote API item is removed.
   void remove(SuperMediaItem item) {
     final index = _items.indexWhere((e) => e.id == item.id);
     if (index == -1) return;
@@ -196,8 +218,10 @@ class SuperMediaController<T extends Object> extends ChangeNotifier {
     return remoteIds;
   }
 
+  /// Removes the visible item at [index].
   void removeAt(int index) => remove(_items[index]);
 
+  /// Restores a previously removed remote item to the visible collection.
   void restoreRemote(SuperMediaItem item) {
     final index = _removedItems.indexWhere((e) => e.id == item.id);
     if (index == -1) return;
@@ -208,6 +232,7 @@ class SuperMediaController<T extends Object> extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Replaces [oldItem] after validating [newItem] with [config].
   void replace(
     SuperMediaItem oldItem,
     SuperMediaItem newItem, {
@@ -227,6 +252,7 @@ class SuperMediaController<T extends Object> extends ChangeNotifier {
     }
   }
 
+  /// Moves an item between indices using reorderable-list index semantics.
   void reorder(int oldIndex, int newIndex) {
     if (newIndex > oldIndex) newIndex -= 1;
     final item = _items.removeAt(oldIndex);
@@ -234,6 +260,7 @@ class SuperMediaController<T extends Object> extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Updates upload [progress] and [status] for the item identified by [id].
   void setUploadProgress(
     String id,
     double progress, {
@@ -248,9 +275,11 @@ class SuperMediaController<T extends Object> extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Marks the item identified by [id] as completely uploaded.
   void markUploaded(String id) =>
       setUploadProgress(id, 1, status: SuperMediaItemStatus.uploaded);
 
+  /// Replaces visible state, optionally preserving deletion history or silence.
   void setItems(
     List<SuperMediaItem> items, {
     bool resetRemoved = true,
@@ -261,6 +290,7 @@ class SuperMediaController<T extends Object> extends ChangeNotifier {
     if (notify) notifyListeners();
   }
 
+  /// Clears visible state and optionally tracks remote items for deletion.
   void clear({bool trackRemoteRemovals = true}) {
     if (trackRemoteRemovals) _trackRemoteRemovals();
     _items.clear();

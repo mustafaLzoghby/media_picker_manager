@@ -6,25 +6,58 @@ import 'package:cross_file/cross_file.dart';
 import '../enums/media_enums.dart';
 import '../utils/media_utils.dart';
 
+/// Converts an arbitrary application model into a [SuperMediaItem].
 typedef SuperMediaValueMapper<T extends Object> =
     SuperMediaItem Function(T value, int index);
+
+/// A non-generic mapper retained for dynamically typed integrations.
 typedef SuperMediaItemMapper = SuperMediaValueMapper<Object>;
 
+/// Represents one local selection or one existing remote API media value.
 class SuperMediaItem {
+  /// Stable local or server identifier used for updates and deletion.
   final String id;
+
+  /// Local filesystem path for newly selected media.
   final String? path;
+
+  /// Remote URL for media that already exists in an API.
   final String? url;
+
+  /// Optional local poster or thumbnail path, commonly used for videos.
   final String? thumbnailPath;
+
+  /// Optional remote poster or thumbnail URL.
   final String? thumbnailUrl;
+
+  /// Display name and extension used for type inference.
   final String name;
+
+  /// Whether this item is an image, video, or generic file.
   final SuperMediaType type;
+
+  /// Known file size in bytes, or null when the API omits it.
   final int? sizeBytes;
+
+  /// Known video duration, or null when it has not been supplied.
   final Duration? duration;
+
+  /// Whether the item is a new local selection or existing remote media.
   final SuperMediaItemOrigin origin;
+
+  /// Current upload or deletion lifecycle state.
   final SuperMediaItemStatus status;
+
+  /// Upload completion from zero to one.
   final double uploadProgress;
+
+  /// Original developer model or any custom metadata attached to the item.
   final Object? data;
 
+  /// Creates a fully specified media item.
+  ///
+  /// Either [path] or [url] must be supplied and [uploadProgress] must be
+  /// between zero and one.
   const SuperMediaItem({
     required this.id,
     this.path,
@@ -42,6 +75,7 @@ class SuperMediaItem {
   }) : assert(path != null || url != null),
        assert(uploadProgress >= 0 && uploadProgress <= 1);
 
+  /// Creates a newly selected local item and infers omitted metadata.
   factory SuperMediaItem.local({
     required String id,
     required String path,
@@ -69,6 +103,7 @@ class SuperMediaItem {
     );
   }
 
+  /// Creates an existing API item and infers its name and type from [url].
   factory SuperMediaItem.remote({
     required String id,
     required String url,
@@ -268,6 +303,7 @@ class SuperMediaItem {
     return key.toString().toLowerCase().replaceAll(RegExp('[^a-z0-9]'), '');
   }
 
+  /// Normalizes an iterable of strings, maps, files, or custom models.
   static List<SuperMediaItem> fromObjects<T extends Object>(
     Iterable<T> values, {
     SuperMediaValueMapper<T>? mapper,
@@ -278,6 +314,7 @@ class SuperMediaItem {
     ];
   }
 
+  /// Combines singular and plural initial values while removing duplicate IDs.
   static List<SuperMediaItem> fromInitialValues<T extends Object>({
     T? item,
     Iterable<T> items = const [],
@@ -314,11 +351,19 @@ class SuperMediaItem {
     };
   }
 
+  /// Whether this item represents a local file awaiting upload.
   bool get isLocal => origin == SuperMediaItemOrigin.local;
+
+  /// Whether this item represents media that already exists in an API.
   bool get isRemote => origin == SuperMediaItemOrigin.remote;
+
+  /// Whether this remote item has been marked for deletion.
   bool get isRemoved => status == SuperMediaItemStatus.removed;
+
+  /// A [File] for [path], or null for URL-only remote items.
   File? get file => path == null ? null : File(path!);
 
+  /// Returns a copy with the supplied values replacing current metadata.
   SuperMediaItem copyWith({
     String? id,
     String? path,

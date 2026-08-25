@@ -1,3 +1,11 @@
+## 0.1.1
+
+- Removed the explicit pub.dev documentation URL so pub.dev uses its generated
+  API reference without failing URL validation.
+- Added developer-facing dartdoc across the public API.
+- Updated all direct runtime dependencies to their latest stable releases,
+  including `file_picker` 12.1.0 and its new single/multiple selection API.
+
 ## 0.1.0
 
 - Published package name finalized as `media_picker_manager`, with the matching

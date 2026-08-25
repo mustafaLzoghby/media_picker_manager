@@ -1,3 +1,10 @@
+/// A configurable picker and manager for local and remote media.
+///
+/// Import this library to access the package's picker widgets, controller,
+/// configuration objects, media models, validation helpers, and byte-size
+/// extensions.
+library;
+
 export 'src/config/super_media_picker_config.dart';
 export 'src/controllers/super_media_controller.dart';
 export 'src/enums/media_enums.dart';

@@ -6,15 +6,22 @@ import '../config/super_media_picker_config.dart';
 import '../enums/media_enums.dart';
 import '../models/super_media_item.dart';
 
+/// Asynchronously processes a selected item before validation and callbacks.
 typedef SuperMediaTransform =
     Future<SuperMediaItem> Function(SuperMediaItem item);
 
+/// Opens native image, video, and file pickers and normalizes their results.
 class SuperMediaPickerService {
+  /// Creates a picker service, optionally using a custom [imagePicker].
   SuperMediaPickerService({ImagePicker? imagePicker})
     : _imagePicker = imagePicker ?? ImagePicker();
 
   final ImagePicker _imagePicker;
 
+  /// Picks [type] from [source] according to [config].
+  ///
+  /// When supplied, [transform] runs once for every selected item before the
+  /// returned list is validated by the controller.
   Future<List<SuperMediaItem>> pick({
     required SuperMediaType type,
     required SuperMediaSource source,
@@ -113,24 +120,32 @@ class SuperMediaPickerService {
               .map((e) => e.replaceFirst('.', ''))
               .toList();
     }
-    final result = await FilePicker.pickFiles(
-      allowMultiple: config.allowsMultipleFor(requestedType),
-      type: fileType,
-      allowedExtensions: extensions,
-    );
-    if (result == null) return [];
-    return result.files
-        .where((f) => f.path != null)
-        .map((f) {
-          return SuperMediaItem.local(
-            id: _id(),
-            path: f.path!,
-            name: f.name,
-            type: requestedType,
-            sizeBytes: f.size,
-          );
-        })
-        .toList(growable: false);
+    final List<PlatformFile> result;
+    if (config.allowsMultipleFor(requestedType)) {
+      result = await FilePicker.pickFiles(
+        type: fileType,
+        allowedExtensions: extensions,
+      );
+    } else {
+      final file = await FilePicker.pickFile(
+        type: fileType,
+        allowedExtensions: extensions,
+      );
+      result = [if (file != null) file];
+    }
+    final items = <SuperMediaItem>[];
+    for (final file in result.where((file) => file.path != null)) {
+      items.add(
+        SuperMediaItem.local(
+          id: _id(),
+          path: file.path!,
+          name: file.name,
+          type: requestedType,
+          sizeBytes: await file.length(),
+        ),
+      );
+    }
+    return items;
   }
 
   Future<SuperMediaItem> _fromXFile(XFile x, SuperMediaType type) async {
