@@ -1,3 +1,8 @@
+## 0.1.2
+
+- Raised the documented and example iOS deployment target to 14.0 for
+  `file_picker` 12.x compatibility.
+
 ## 0.1.1
 
 - Removed the explicit pub.dev documentation URL so pub.dev uses its generated

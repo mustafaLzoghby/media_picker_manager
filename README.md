@@ -59,7 +59,7 @@ Or add it manually:
 
 ```yaml
 dependencies:
-  media_picker_manager: ^0.1.1
+  media_picker_manager: ^0.1.2
 ```
 
 The package automatically installs `image_picker`, `file_picker`, `cross_file`,
@@ -86,7 +86,7 @@ default picker sources, add all three:
 - `NSCameraUsageDescription` is required only when camera capture is enabled.
 - `NSMicrophoneUsageDescription` is required only when video recording is
   enabled.
-- Use iOS 12 or newer. The included example targets iOS 13.
+- Use iOS 14 or newer. `file_picker` 12.x requires iOS 14.
 - HTTPS API media needs no extra network configuration. For plain HTTP URLs,
   configure App Transport Security for only the domains your app trusts.
 
