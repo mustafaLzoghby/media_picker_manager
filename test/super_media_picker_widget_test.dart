@@ -259,6 +259,105 @@ void main() {
     expect(find.byKey(const Key('images-widget')), findsOneWidget);
   });
 
+  testWidgets('can present source widgets in a dialog', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: SuperMediaPicker(
+            config: SuperMediaPickerConfig(
+              allowedTypes: {SuperMediaType.image},
+              sources: {SuperMediaSource.gallery, SuperMediaSource.camera},
+              sourcePresentation: SuperMediaSourcePresentation.dialog,
+              icons: SuperMediaIconConfig(
+                images: SizedBox(key: Key('dialog-gallery-widget')),
+                takePhoto: SizedBox(key: Key('dialog-camera-widget')),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Add media'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(find.text('Choose a source'), findsOneWidget);
+    expect(find.byKey(const Key('dialog-gallery-widget')), findsOneWidget);
+    expect(find.byKey(const Key('dialog-camera-widget')), findsOneWidget);
+  });
+
+  testWidgets('confirmation and async endpoint run before removing an item', (
+    tester,
+  ) async {
+    final controller = SuperMediaController(
+      initialItems: [
+        SuperMediaItem.remote(
+          id: 'api-delete',
+          url: 'https://example.com/delete.jpg',
+        ),
+      ],
+    );
+    var endpointCalls = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SuperMediaPicker(
+            controller: controller,
+            config: const SuperMediaPickerConfig(confirmDelete: true),
+            onDeleteRequest: (item) async {
+              endpointCalls++;
+              return item.id == 'api-delete';
+            },
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+    expect(find.text('Delete media?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(controller.items, hasLength(1));
+    expect(endpointCalls, 0);
+
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+    expect(endpointCalls, 1);
+    expect(controller.items, isEmpty);
+    controller.dispose();
+  });
+
+  testWidgets('uses separate local and remote item builders', (tester) async {
+    final controller = SuperMediaController(
+      initialItems: [
+        SuperMediaItem.local(id: 'local', path: '/local.txt'),
+        SuperMediaItem.remote(
+          id: 'remote',
+          url: 'https://example.com/remote.txt',
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SuperMediaPicker(
+            controller: controller,
+            localItemBuilder: (_, item, _, _) => Text('Local ${item.id}'),
+            remoteItemBuilder: (_, item, _, _) => Text('API ${item.id}'),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Local local'), findsOneWidget);
+    expect(find.text('API remote'), findsOneWidget);
+    controller.dispose();
+  });
+
   testWidgets('applies frame configuration and custom container builder', (
     tester,
   ) async {
@@ -285,6 +384,49 @@ void main() {
 
     expect(find.byKey(const Key('custom-container')), findsOneWidget);
     expect(tester.getSize(find.byType(Container).first).width, 320);
+  });
+
+  testWidgets('outer frame changes size when selection state changes', (
+    tester,
+  ) async {
+    final controller = SuperMediaController();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SuperMediaPicker(
+            controller: controller,
+            config: const SuperMediaPickerConfig(
+              crossAxisCount: 1,
+              gridItemHeight: 80,
+              frame: SuperMediaFrameConfig(
+                width: 280,
+                height: 140,
+                emptyWidth: 220,
+                emptyHeight: 100,
+                nonEmptyWidth: 340,
+                nonEmptyHeight: 180,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.getSize(find.byType(Container).first), const Size(220, 100));
+
+    controller.add(
+      SuperMediaItem.local(
+        id: 'selected-file',
+        path: '/selected.txt',
+        name: 'selected.txt',
+        type: SuperMediaType.file,
+      ),
+      config: const SuperMediaPickerConfig(),
+    );
+    await tester.pump();
+
+    expect(tester.getSize(find.byType(Container).first), const Size(340, 180));
+    controller.dispose();
   });
 
   testWidgets('grid layout renders custom empty state and add button', (
@@ -324,12 +466,14 @@ void main() {
       ],
     );
 
+    List<String>? orderedIds;
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: SuperMediaPicker(
             controller: controller,
             config: const SuperMediaPickerConfig(),
+            onReorder: (ids) => orderedIds = ids,
           ),
         ),
       ),
@@ -345,6 +489,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(controller.items.map((item) => item.id), ['b', 'a']);
+    expect(orderedIds, ['b', 'a']);
     controller.dispose();
   });
 

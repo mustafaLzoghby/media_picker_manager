@@ -73,6 +73,36 @@ void main() {
     },
   );
 
+  testWidgets('simple picker exposes empty, non-empty, and shared sizes', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: SuperImagePicker(
+            width: double.infinity,
+            height: 150,
+            emptyWidth: 240,
+            emptyHeight: 100,
+            nonEmptyWidth: 320,
+            nonEmptyHeight: 200,
+          ),
+        ),
+      ),
+    );
+
+    final picker = tester.widget<SuperMediaPicker>(
+      find.byType(SuperMediaPicker),
+    );
+    final frame = picker.config.itemFrame;
+    expect(frame.width, double.infinity);
+    expect(frame.height, 150);
+    expect(frame.widthFor(isEmpty: true), 240);
+    expect(frame.heightFor(isEmpty: true), 100);
+    expect(frame.widthFor(isEmpty: false), 320);
+    expect(frame.heightFor(isEmpty: false), 200);
+  });
+
   testWidgets('any typed model list uses a typed mapper without casts', (
     tester,
   ) async {

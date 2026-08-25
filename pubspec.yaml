@@ -1,6 +1,6 @@
 name: media_picker_manager
 description: A highly configurable Flutter media picker and manager for local and remote images, videos and files.
-version: 0.1.2
+version: 0.1.3
 homepage: https://github.com/mustafaLzoghby/media_picker_manager
 repository: https://github.com/mustafaLzoghby/media_picker_manager
 issue_tracker: https://github.com/mustafaLzoghby/media_picker_manager/issues

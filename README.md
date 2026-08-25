@@ -59,7 +59,7 @@ Or add it manually:
 
 ```yaml
 dependencies:
-  media_picker_manager: ^0.1.2
+  media_picker_manager: ^0.1.3
 ```
 
 The package automatically installs `image_picker`, `file_picker`, `cross_file`,
@@ -196,10 +196,87 @@ SuperMultipleMediaPicker(
 )
 ```
 
-The single image, video, file, and mixed-media widgets expose `width`, `height`,
-and `alignment` directly. They use one grid column, so
+Every simple widget exposes `width`, `height`, `emptyWidth`, `emptyHeight`,
+`nonEmptyWidth`, `nonEmptyHeight`, and `alignment` directly. `width` and
+`height` apply to both states as fallbacks; the state-specific values take
+precedence. Single pickers use one grid column, so
 `width: double.infinity` fills the parent. The default alignment is
 `AlignmentDirectional.centerStart`, which follows LTR and RTL direction.
+
+```dart
+SuperImagePicker(
+  // Used in both states when no state-specific value is supplied.
+  width: double.infinity,
+  height: 160,
+
+  // Used before an image is selected.
+  emptyWidth: double.infinity,
+  emptyHeight: 120,
+
+  // Used after an image is selected.
+  nonEmptyWidth: 240,
+  nonEmptyHeight: 200,
+  onUploadImage: uploadImage,
+)
+```
+
+## Bottom sheet, dialog, or direct Gallery/Camera
+
+The source chooser can be a bottom sheet (the default), an icon dialog, or it
+can be skipped completely. Every source icon is a Flutter `Widget`, not
+`IconData`, so it can be an `Icon`, SVG, image, animation, or custom component.
+
+```dart
+// Bottom sheet.
+SuperImagePicker(
+  config: const SuperMediaPickerConfig(
+    sourcePresentation: SuperMediaSourcePresentation.bottomSheet,
+  ),
+)
+
+// Dialog with custom widget icons.
+SuperImagePicker(
+  config: SuperMediaPickerConfig(
+    sourcePresentation: SuperMediaSourcePresentation.dialog,
+    icons: SuperMediaIconConfig(
+      images: Image.asset('assets/gallery.png', width: 28),
+      takePhoto: MyCameraSvg(),
+    ),
+  ),
+)
+
+// Open Gallery immediately; do not ask the user.
+SuperImagePicker(
+  config: const SuperMediaPickerConfig(
+    sources: {SuperMediaSource.gallery},
+    sourcePresentation: SuperMediaSourcePresentation.direct,
+    directSource: SuperMediaSource.gallery,
+    directType: SuperMediaType.image,
+  ),
+)
+
+// Open Camera immediately; do not ask the user.
+SuperImagePicker(
+  config: const SuperMediaPickerConfig(
+    sources: {SuperMediaSource.camera},
+    sourcePresentation: SuperMediaSourcePresentation.direct,
+    directSource: SuperMediaSource.camera,
+    directType: SuperMediaType.image,
+  ),
+)
+```
+
+Use `sourceOptionBuilder` to replace every default bottom-sheet or dialog
+button while keeping the built-in navigation:
+
+```dart
+SuperImagePicker(
+  sourceOptionBuilder: (context, option, select) => InkWell(
+    onTap: select,
+    child: Column(children: [option.icon, Text(option.label)]),
+  ),
+)
+```
 
 Replace the default upload frame with any Flutter design. Your custom widget
 must call `openPicker` when it is tapped:
@@ -304,9 +381,13 @@ SuperImagesPicker<Images>(
     id: image.id.toString(),
     url: image.image,
   ),
-  onDelete: (id) async {
-    await api.deleteImage(id);
+  config: const SuperMediaPickerConfig(confirmDelete: true),
+  onDeleteRequest: (item) async {
+    // The item stays visible until the endpoint succeeds.
+    await api.deleteImage(item.id);
+    return true;
   },
+  onDelete: (id) => debugPrint('Removed $id'),
   onDeleteAll: (ids) async {
     await api.deleteImages(ids);
   },
@@ -314,9 +395,14 @@ SuperImagesPicker<Images>(
 )
 ```
 
-`onDelete` is called when one remote initial item is removed. `onDeleteAll` is
-called when multiple remote items are removed in one controller operation.
-Local selections never call delete endpoints. For a custom delete-all button:
+Set `confirmDelete: true` to show the built-in confirmation dialog, or `false`
+to remove immediately. `deleteConfirmation` can replace that dialog entirely.
+`onDeleteRequest` runs before removal and is awaited; return `true` after a
+successful endpoint call, or `false` to keep the item visible. `onDelete` is
+called after one remote initial item is removed. `onDeleteAll` is called when
+multiple remote items are removed in one controller operation. `onDeleteRequest`
+receives both local and remote items; check `item.isRemote` when only API media
+needs an endpoint. For a custom delete-all button:
 
 ```dart
 final controller = SuperMediaController<Images>(
@@ -349,6 +435,43 @@ A controller is optional. Use it when another button or form action must read
 or change picker state: delete all, delete by ID, inspect the final result,
 restore an API item, or update upload progress. For simple upload and remove
 callbacks alone, no controller is required.
+
+## Picker lifecycle, errors, validation, and item origin
+
+All simple widgets and `SuperMediaPicker` support lifecycle callbacks, custom
+validation, loading/error/retry UI, and separate local/API item builders:
+
+```dart
+SuperImagesPicker(
+  onPickStarted: () => debugPrint('picker opened'),
+  onPickFinished: () => debugPrint('picker finished'),
+  onPickerFailure: (error, stack) => report(error, stack),
+  validator: (item, currentItems) {
+    if (item.name.toLowerCase().endsWith('.gif')) {
+      return SuperMediaValidationError(
+        'gif_not_allowed',
+        'GIF images are not allowed.',
+        item: item,
+      );
+    }
+    return null;
+  },
+  pickingBuilder: (_) => const Center(child: CircularProgressIndicator()),
+  pickErrorBuilder: (context, error, retry) => TextButton(
+    onPressed: retry,
+    child: const Text('Try again'),
+  ),
+  localItemBuilder: (context, item, index, remove) =>
+      MyPendingUploadTile(item: item, onRemove: remove),
+  remoteItemBuilder: (context, item, index, remove) =>
+      MyApiMediaTile(item: item, onRemove: remove),
+  onReorder: (orderedIds) => api.saveMediaOrder(orderedIds),
+)
+```
+
+Use the async `transform` hook for cropping, image/video compression, metadata
+extraction, encryption, or renaming. This keeps those dependencies optional and
+lets each application choose its preferred processing package.
 
 Use the same typed `initialItemMapper` with image, video, file, single-media,
 multiple-media, or the advanced `SuperMediaPicker<T>`. Models with recognized
@@ -566,6 +689,11 @@ SuperMediaPickerConfig(
   borderRadius: 18,
   frame: SuperMediaFrameConfig(
     width: 720,
+    height: 300,
+    emptyWidth: double.infinity,
+    emptyHeight: 140,
+    nonEmptyWidth: 720,
+    nonEmptyHeight: 420,
     padding: EdgeInsets.all(16),
     margin: EdgeInsets.symmetric(vertical: 12),
     decoration: BoxDecoration(
@@ -604,6 +732,10 @@ const SuperMediaPickerConfig(
   itemFrame: SuperMediaItemFrameConfig(
     width: 180,
     height: 130,
+    emptyWidth: double.infinity,
+    emptyHeight: 100,
+    nonEmptyWidth: 180,
+    nonEmptyHeight: 150,
     alignment: Alignment.centerLeft,
   ),
 )

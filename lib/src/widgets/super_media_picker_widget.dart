@@ -18,6 +18,16 @@ typedef SuperMediaPicked = void Function(List<SuperMediaItem> items);
 typedef SuperMediaDelete = void Function(String id);
 typedef SuperMediaDeleteAll = void Function(List<String> ids);
 typedef SuperMediaError = void Function(SuperMediaValidationError error);
+typedef SuperMediaDeleteRequest = Future<bool> Function(SuperMediaItem item);
+typedef SuperMediaDeleteConfirmation =
+    Future<bool> Function(BuildContext context, SuperMediaItem item);
+typedef SuperMediaReordered = void Function(List<String> orderedIds);
+typedef SuperMediaPickerFailure = void Function(Object error, StackTrace stack);
+typedef SuperMediaValidator =
+    SuperMediaValidationError? Function(
+      SuperMediaItem item,
+      List<SuperMediaItem> currentItems,
+    );
 typedef SuperMediaItemBuilder =
     Widget Function(
       BuildContext context,
@@ -28,6 +38,8 @@ typedef SuperMediaItemBuilder =
 
 typedef SuperMediaAddButtonBuilder =
     Widget Function(BuildContext context, VoidCallback openPicker);
+typedef SuperMediaPickerErrorBuilder =
+    Widget Function(BuildContext context, Object error, VoidCallback retry);
 typedef SuperMediaContainerBuilder =
     Widget Function(BuildContext context, Widget child);
 typedef SuperMediaPreviewBuilder =
@@ -39,6 +51,27 @@ typedef SuperMediaItemFrameBuilder =
       int index,
       Widget child,
     );
+typedef SuperMediaSourceOptionBuilder =
+    Widget Function(
+      BuildContext context,
+      SuperMediaPickerOption option,
+      VoidCallback select,
+    );
+
+/// One source action displayed by the built-in bottom sheet or dialog.
+class SuperMediaPickerOption {
+  const SuperMediaPickerOption({
+    required this.label,
+    required this.icon,
+    required this.type,
+    required this.source,
+  });
+
+  final String label;
+  final Widget icon;
+  final SuperMediaType type;
+  final SuperMediaSource source;
+}
 
 class SuperMediaPicker<T extends Object> extends StatefulWidget {
   const SuperMediaPicker({
@@ -51,11 +84,23 @@ class SuperMediaPicker<T extends Object> extends StatefulWidget {
     this.onPicked,
     this.onDelete,
     this.onDeleteAll,
+    this.onDeleteRequest,
+    this.deleteConfirmation,
     this.onChanged,
+    this.onPickStarted,
+    this.onPickFinished,
+    this.onPickerFailure,
+    this.onReorder,
     this.onValidationError,
+    this.validator,
     this.transform,
     this.itemBuilder,
+    this.localItemBuilder,
+    this.remoteItemBuilder,
     this.addButtonBuilder,
+    this.pickingBuilder,
+    this.pickErrorBuilder,
+    this.sourceOptionBuilder,
     this.emptyBuilder,
     this.containerBuilder,
     this.previewBuilder,
@@ -76,11 +121,23 @@ class SuperMediaPicker<T extends Object> extends StatefulWidget {
 
   /// Called when multiple remote/initial items are removed in one operation.
   final SuperMediaDeleteAll? onDeleteAll;
+  final SuperMediaDeleteRequest? onDeleteRequest;
+  final SuperMediaDeleteConfirmation? deleteConfirmation;
   final SuperMediaChanged? onChanged;
+  final VoidCallback? onPickStarted;
+  final VoidCallback? onPickFinished;
+  final SuperMediaPickerFailure? onPickerFailure;
+  final SuperMediaReordered? onReorder;
   final SuperMediaError? onValidationError;
+  final SuperMediaValidator? validator;
   final SuperMediaTransform? transform;
   final SuperMediaItemBuilder? itemBuilder;
+  final SuperMediaItemBuilder? localItemBuilder;
+  final SuperMediaItemBuilder? remoteItemBuilder;
   final SuperMediaAddButtonBuilder? addButtonBuilder;
+  final WidgetBuilder? pickingBuilder;
+  final SuperMediaPickerErrorBuilder? pickErrorBuilder;
+  final SuperMediaSourceOptionBuilder? sourceOptionBuilder;
   final WidgetBuilder? emptyBuilder;
   final SuperMediaContainerBuilder? containerBuilder;
   final SuperMediaPreviewBuilder? previewBuilder;
@@ -97,6 +154,9 @@ class _SuperMediaPickerState<T extends Object>
   late bool _ownsController;
   final _service = SuperMediaPickerService();
   final Set<String> _knownRemovedIds = {};
+  final Set<String> _deletingIds = {};
+  bool _isPicking = false;
+  Object? _pickError;
 
   @override
   void initState() {
@@ -210,27 +270,28 @@ class _SuperMediaPickerState<T extends Object>
   }
 
   Future<void> _openPicker() async {
-    final options = <_PickerOption>[];
+    if (_isPicking) return;
+    final options = <SuperMediaPickerOption>[];
     final c = widget.config;
     final text = _text(context);
     if (c.allowedTypes.contains(SuperMediaType.image)) {
       if (c.sources.contains(SuperMediaSource.gallery)) {
         options.add(
-          _PickerOption(
-            text.images,
-            c.icons.images ?? const Icon(Icons.image_outlined),
-            SuperMediaType.image,
-            SuperMediaSource.gallery,
+          SuperMediaPickerOption(
+            label: text.images,
+            icon: c.icons.images ?? const Icon(Icons.image_outlined),
+            type: SuperMediaType.image,
+            source: SuperMediaSource.gallery,
           ),
         );
       }
       if (c.sources.contains(SuperMediaSource.camera)) {
         options.add(
-          _PickerOption(
-            text.takePhoto,
-            c.icons.takePhoto ?? const Icon(Icons.photo_camera_outlined),
-            SuperMediaType.image,
-            SuperMediaSource.camera,
+          SuperMediaPickerOption(
+            label: text.takePhoto,
+            icon: c.icons.takePhoto ?? const Icon(Icons.photo_camera_outlined),
+            type: SuperMediaType.image,
+            source: SuperMediaSource.camera,
           ),
         );
       }
@@ -238,21 +299,23 @@ class _SuperMediaPickerState<T extends Object>
     if (c.allowedTypes.contains(SuperMediaType.video)) {
       if (c.sources.contains(SuperMediaSource.gallery)) {
         options.add(
-          _PickerOption(
-            text.videos,
-            c.icons.videos ?? const Icon(Icons.videocam_outlined),
-            SuperMediaType.video,
-            SuperMediaSource.gallery,
+          SuperMediaPickerOption(
+            label: text.videos,
+            icon: c.icons.videos ?? const Icon(Icons.videocam_outlined),
+            type: SuperMediaType.video,
+            source: SuperMediaSource.gallery,
           ),
         );
       }
       if (c.sources.contains(SuperMediaSource.camera)) {
         options.add(
-          _PickerOption(
-            text.recordVideo,
-            c.icons.recordVideo ?? const Icon(Icons.video_camera_back_outlined),
-            SuperMediaType.video,
-            SuperMediaSource.camera,
+          SuperMediaPickerOption(
+            label: text.recordVideo,
+            icon:
+                c.icons.recordVideo ??
+                const Icon(Icons.video_camera_back_outlined),
+            type: SuperMediaType.video,
+            source: SuperMediaSource.camera,
           ),
         );
       }
@@ -260,67 +323,166 @@ class _SuperMediaPickerState<T extends Object>
     if (c.allowedTypes.contains(SuperMediaType.file) &&
         c.sources.contains(SuperMediaSource.files)) {
       options.add(
-        _PickerOption(
-          text.files,
-          c.icons.files ?? const Icon(Icons.attach_file),
-          SuperMediaType.file,
-          SuperMediaSource.files,
+        SuperMediaPickerOption(
+          label: text.files,
+          icon: c.icons.files ?? const Icon(Icons.attach_file),
+          type: SuperMediaType.file,
+          source: SuperMediaSource.files,
         ),
       );
     }
 
     if (!mounted || options.isEmpty) return;
-    final selected = await showModalBottomSheet<_PickerOption>(
+    final selected = await _chooseOption(options);
+    if (selected == null) return;
+
+    setState(() {
+      _isPicking = true;
+      _pickError = null;
+    });
+    widget.onPickStarted?.call();
+    try {
+      final picked = await _service.pick(
+        type: selected.type,
+        source: selected.source,
+        config: c,
+        transform: widget.transform,
+      );
+      final previousIds = _controller.items.map((item) => item.id).toSet();
+      final accepted = <SuperMediaItem>[];
+      for (final item in picked) {
+        final customError = widget.validator?.call(item, _controller.items);
+        final error =
+            customError ?? _controller.add(item, config: widget.config);
+        if (error != null) {
+          widget.onValidationError?.call(error);
+          continue;
+        }
+        if (!previousIds.contains(item.id) &&
+            _controller.items.any((current) => current.id == item.id)) {
+          accepted.add(item);
+        }
+      }
+      if (accepted.isNotEmpty) {
+        widget.onPicked?.call(List.unmodifiable(accepted));
+      }
+    } catch (error, stack) {
+      if (mounted) setState(() => _pickError = error);
+      widget.onPickerFailure?.call(error, stack);
+    } finally {
+      if (mounted) setState(() => _isPicking = false);
+      widget.onPickFinished?.call();
+    }
+  }
+
+  Future<SuperMediaPickerOption?> _chooseOption(
+    List<SuperMediaPickerOption> options,
+  ) async {
+    final config = widget.config;
+    if (config.sourcePresentation == SuperMediaSourcePresentation.direct) {
+      for (final option in options) {
+        final sourceMatches =
+            config.directSource == null || option.source == config.directSource;
+        final typeMatches =
+            config.directType == null || option.type == config.directType;
+        if (sourceMatches && typeMatches) return option;
+      }
+      return options.first;
+    }
+    if (config.sourcePresentation == SuperMediaSourcePresentation.dialog) {
+      return showDialog<SuperMediaPickerOption>(
+        context: context,
+        builder:
+            (dialogContext) => Directionality(
+              textDirection: _textDirection(context),
+              child: AlertDialog(
+                title: Text(_text(context).chooseSource),
+                content: Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    for (final option in options)
+                      _buildDialogOption(dialogContext, option),
+                  ],
+                ),
+              ),
+            ),
+      );
+    }
+    return showModalBottomSheet<SuperMediaPickerOption>(
       context: context,
       showDragHandle: true,
       builder:
-          (context) => Directionality(
+          (sheetContext) => Directionality(
             textDirection: _textDirection(context),
             child: SafeArea(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   for (final option in options)
-                    ListTile(
-                      leading: option.icon,
-                      title: Text(option.label),
-                      onTap: () => Navigator.pop(context, option),
-                    ),
+                    widget.sourceOptionBuilder?.call(
+                          sheetContext,
+                          option,
+                          () => Navigator.pop(sheetContext, option),
+                        ) ??
+                        ListTile(
+                          leading: option.icon,
+                          title: Text(option.label),
+                          onTap: () => Navigator.pop(sheetContext, option),
+                        ),
                 ],
               ),
             ),
           ),
     );
-    if (selected == null) return;
+  }
 
-    final picked = await _service.pick(
-      type: selected.type,
-      source: selected.source,
-      config: c,
-      transform: widget.transform,
-    );
-    final previousIds = _controller.items.map((item) => item.id).toSet();
-    final errors = _controller.addAll(picked, config: c);
-    final accepted = picked
-        .where(
-          (item) =>
-              !previousIds.contains(item.id) &&
-              _controller.items.any((current) => current.id == item.id),
-        )
-        .toList(growable: false);
-    if (accepted.isNotEmpty) widget.onPicked?.call(accepted);
-    for (final error in errors) {
-      widget.onValidationError?.call(error);
-    }
+  Widget _buildDialogOption(
+    BuildContext dialogContext,
+    SuperMediaPickerOption option,
+  ) {
+    void select() => Navigator.pop(dialogContext, option);
+    return widget.sourceOptionBuilder?.call(dialogContext, option, select) ??
+        SizedBox(
+          width: 104,
+          height: 82,
+          child: Material(
+            color: Theme.of(dialogContext).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(14),
+            child: InkWell(
+              onTap: select,
+              borderRadius: BorderRadius.circular(14),
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    option.icon,
+                    const SizedBox(height: 6),
+                    Flexible(
+                      child: Text(
+                        option.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
     final frame = widget.config.frame;
+    final isEmpty = _controller.items.isEmpty;
     final content = Container(
-      width: frame.width,
-      height: frame.height,
+      width: frame.widthFor(isEmpty: isEmpty),
+      height: frame.heightFor(isEmpty: isEmpty),
       constraints: frame.constraints,
       margin: frame.margin,
       padding: frame.padding,
@@ -343,6 +505,8 @@ class _SuperMediaPickerState<T extends Object>
 
   Widget _buildContent(BuildContext context) {
     final items = _controller.items;
+    final isEmpty = items.isEmpty;
+    final itemHeight = widget.config.itemFrame.heightFor(isEmpty: isEmpty);
 
     if (widget.config.layout == SuperMediaLayout.list) {
       return Column(
@@ -354,18 +518,17 @@ class _SuperMediaPickerState<T extends Object>
             Padding(
               padding: EdgeInsets.only(bottom: widget.config.spacing),
               child: SizedBox(
-                height:
-                    widget.config.itemFrame.height ??
-                    widget.config.listItemHeight,
-                child: _applyItemFrame(_buildItemWithReorder(items[i], i)),
+                height: itemHeight ?? widget.config.listItemHeight,
+                child: _applyItemFrame(
+                  _buildItemWithReorder(items[i], i),
+                  isEmpty: isEmpty,
+                ),
               ),
             ),
           if (_canAdd)
             SizedBox(
-              height:
-                  widget.config.itemFrame.height ??
-                  widget.config.listItemHeight,
-              child: _applyItemFrame(_buildAddButton()),
+              height: itemHeight ?? widget.config.listItemHeight,
+              child: _applyItemFrame(_buildAddButton(), isEmpty: isEmpty),
             ),
         ],
       );
@@ -381,14 +544,16 @@ class _SuperMediaPickerState<T extends Object>
         crossAxisSpacing: widget.config.spacing,
         mainAxisSpacing: widget.config.spacing,
         childAspectRatio: widget.config.gridItemAspectRatio,
-        mainAxisExtent:
-            widget.config.itemFrame.height ?? widget.config.gridItemHeight,
+        mainAxisExtent: itemHeight ?? widget.config.gridItemHeight,
       ),
       itemBuilder: (context, index) {
         if (index == items.length) {
-          return _applyItemFrame(_buildAddButton());
+          return _applyItemFrame(_buildAddButton(), isEmpty: isEmpty);
         }
-        return _applyItemFrame(_buildItemWithReorder(items[index], index));
+        return _applyItemFrame(
+          _buildItemWithReorder(items[index], index),
+          isEmpty: isEmpty,
+        );
       },
     );
     if (items.isEmpty && widget.emptyBuilder != null) {
@@ -406,6 +571,27 @@ class _SuperMediaPickerState<T extends Object>
   }
 
   Widget _buildAddButton() {
+    if (_isPicking) {
+      return widget.pickingBuilder?.call(context) ??
+          const Center(child: CircularProgressIndicator());
+    }
+    if (_pickError != null) {
+      return widget.pickErrorBuilder?.call(context, _pickError!, _openPicker) ??
+          InkWell(
+            onTap: _openPicker,
+            borderRadius: BorderRadius.circular(widget.config.borderRadius),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.refresh_rounded),
+                  const SizedBox(height: 4),
+                  Text(_text(context).retry),
+                ],
+              ),
+            ),
+          );
+    }
     if (widget.addButtonBuilder != null) {
       return widget.addButtonBuilder!(context, _openPicker);
     }
@@ -434,17 +620,24 @@ class _SuperMediaPickerState<T extends Object>
     );
   }
 
-  Widget _applyItemFrame(Widget child) {
+  Widget _applyItemFrame(Widget child, {required bool isEmpty}) {
     final frame = widget.config.itemFrame;
-    if (frame.width == null && frame.height == null) return child;
+    final width = frame.widthFor(isEmpty: isEmpty);
+    final height = frame.heightFor(isEmpty: isEmpty);
+    if (width == null && height == null) return child;
     return Align(
       alignment: frame.alignment,
-      child: SizedBox(width: frame.width, height: frame.height, child: child),
+      child: SizedBox(width: width, height: height, child: child),
     );
   }
 
   Widget _buildItem(SuperMediaItem item, int index) {
-    void remove() => _controller.remove(item);
+    void remove() => _removeItem(item);
+    final originBuilder =
+        item.isRemote ? widget.remoteItemBuilder : widget.localItemBuilder;
+    if (originBuilder != null) {
+      return originBuilder(context, item, index, remove);
+    }
     if (widget.itemBuilder != null) {
       return widget.itemBuilder!(context, item, index, remove);
     }
@@ -453,6 +646,7 @@ class _SuperMediaPickerState<T extends Object>
       config: widget.config,
       text: _text(context),
       onRemove: remove,
+      isDeleting: _deletingIds.contains(item.id),
       showReorderHandle:
           widget.config.enableReorder &&
           widget.config.showReorderHandle &&
@@ -464,6 +658,53 @@ class _SuperMediaPickerState<T extends Object>
     );
     return widget.itemFrameBuilder?.call(context, item, index, defaultTile) ??
         defaultTile;
+  }
+
+  Future<void> _removeItem(SuperMediaItem item) async {
+    if (_deletingIds.contains(item.id)) return;
+    var confirmed = true;
+    if (widget.deleteConfirmation != null) {
+      confirmed = await widget.deleteConfirmation!(context, item);
+    } else if (widget.config.confirmDelete) {
+      confirmed =
+          await showDialog<bool>(
+            context: context,
+            builder:
+                (dialogContext) => Directionality(
+                  textDirection: _textDirection(context),
+                  child: AlertDialog(
+                    title: Text(_text(context).confirmDeleteTitle),
+                    content: Text(_text(context).confirmDeleteMessage),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext, false),
+                        child: Text(_text(context).cancel),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.pop(dialogContext, true),
+                        child: Text(_text(context).delete),
+                      ),
+                    ],
+                  ),
+                ),
+          ) ??
+          false;
+    }
+    if (!confirmed || !mounted) return;
+
+    if (widget.onDeleteRequest != null) {
+      setState(() => _deletingIds.add(item.id));
+      try {
+        final canRemove = await widget.onDeleteRequest!(item);
+        if (!canRemove || !mounted) return;
+      } catch (error, stack) {
+        widget.onPickerFailure?.call(error, stack);
+        return;
+      } finally {
+        if (mounted) setState(() => _deletingIds.remove(item.id));
+      }
+    }
+    _controller.remove(item);
   }
 
   void _openPreview(SuperMediaItem item) {
@@ -518,6 +759,9 @@ class _SuperMediaPickerState<T extends Object>
             final oldIndex = details.data;
             final newIndex = oldIndex < index ? index + 1 : index;
             _controller.reorder(oldIndex, newIndex);
+            widget.onReorder?.call(
+              List.unmodifiable(_controller.items.map((item) => item.id)),
+            );
           },
           builder:
               (context, candidates, rejected) => LongPressDraggable<int>(
@@ -555,6 +799,7 @@ class _DefaultMediaTile extends StatelessWidget {
     required this.config,
     required this.text,
     required this.onRemove,
+    required this.isDeleting,
     required this.showReorderHandle,
     this.onPreview,
   });
@@ -562,6 +807,7 @@ class _DefaultMediaTile extends StatelessWidget {
   final SuperMediaPickerConfig config;
   final SuperMediaTextConfig text;
   final VoidCallback onRemove;
+  final bool isDeleting;
   final bool showReorderHandle;
   final VoidCallback? onPreview;
 
@@ -633,7 +879,7 @@ class _DefaultMediaTile extends StatelessWidget {
                   ),
                 ),
               ),
-              if (config.showRemoveButton)
+              if (config.showRemoveButton && !isDeleting)
                 PositionedDirectional(
                   top: 5,
                   end: 5,
@@ -655,6 +901,11 @@ class _DefaultMediaTile extends StatelessWidget {
                       ),
                     ),
                   ),
+                ),
+              if (isDeleting)
+                const ColoredBox(
+                  color: Colors.black38,
+                  child: Center(child: CircularProgressIndicator()),
                 ),
               if (item.isRemote && config.showRemoteBadge)
                 PositionedDirectional(
@@ -814,12 +1065,4 @@ class _VideoThumbnailState extends State<_VideoThumbnail> {
       ),
     );
   }
-}
-
-class _PickerOption {
-  const _PickerOption(this.label, this.icon, this.type, this.source);
-  final String label;
-  final Widget icon;
-  final SuperMediaType type;
-  final SuperMediaSource source;
 }

@@ -1,3 +1,13 @@
+## 0.1.3
+
+- Added shared, empty-state, and non-empty-state width/height controls for the
+  complete picker frame, every media tile, and every simple picker widget.
+- Added bottom-sheet, icon-dialog, and direct Gallery/Camera/Files source
+  presentation modes with replaceable widget icons and option builders.
+- Added optional delete confirmation, awaited async endpoint deletion,
+  picker lifecycle/error/retry hooks, custom validation, ordered-ID callbacks,
+  and separate local/API item builders.
+
 ## 0.1.2
 
 - Raised the documented and example iOS deployment target to 14.0 for

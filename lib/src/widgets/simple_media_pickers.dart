@@ -20,6 +20,10 @@ class SuperImagePicker<T extends Object> extends StatelessWidget {
     this.config = const SuperMediaPickerConfig(),
     this.width,
     this.height,
+    this.emptyWidth,
+    this.emptyHeight,
+    this.nonEmptyWidth,
+    this.nonEmptyHeight,
     this.alignment,
     this.quality,
     this.maxWidth,
@@ -30,9 +34,20 @@ class SuperImagePicker<T extends Object> extends StatelessWidget {
     this.itemBuilder,
     this.onDelete,
     this.onDeleteAll,
+    this.onDeleteRequest,
+    this.deleteConfirmation,
+    this.onPickStarted,
+    this.onPickFinished,
+    this.onPickerFailure,
+    this.validator,
     this.onUploadImage,
     this.onChanged,
     this.onValidationError,
+    this.localItemBuilder,
+    this.remoteItemBuilder,
+    this.pickingBuilder,
+    this.pickErrorBuilder,
+    this.sourceOptionBuilder,
   });
 
   final SuperMediaController? controller;
@@ -41,6 +56,10 @@ class SuperImagePicker<T extends Object> extends StatelessWidget {
   final SuperMediaPickerConfig config;
   final double? width;
   final double? height;
+  final double? emptyWidth;
+  final double? emptyHeight;
+  final double? nonEmptyWidth;
+  final double? nonEmptyHeight;
   final AlignmentGeometry? alignment;
   final int? quality;
   final int? maxWidth;
@@ -51,9 +70,20 @@ class SuperImagePicker<T extends Object> extends StatelessWidget {
   final SuperMediaItemBuilder? itemBuilder;
   final SuperMediaDelete? onDelete;
   final SuperMediaDeleteAll? onDeleteAll;
+  final SuperMediaDeleteRequest? onDeleteRequest;
+  final SuperMediaDeleteConfirmation? deleteConfirmation;
+  final VoidCallback? onPickStarted;
+  final VoidCallback? onPickFinished;
+  final SuperMediaPickerFailure? onPickerFailure;
+  final SuperMediaValidator? validator;
   final SuperUploadPath? onUploadImage;
   final SuperMediaChanged? onChanged;
   final SuperMediaError? onValidationError;
+  final SuperMediaItemBuilder? localItemBuilder;
+  final SuperMediaItemBuilder? remoteItemBuilder;
+  final WidgetBuilder? pickingBuilder;
+  final SuperMediaPickerErrorBuilder? pickErrorBuilder;
+  final SuperMediaSourceOptionBuilder? sourceOptionBuilder;
 
   @override
   Widget build(BuildContext context) => SuperMediaPicker<T>(
@@ -66,6 +96,10 @@ class SuperImagePicker<T extends Object> extends StatelessWidget {
       multiple: false,
       width: width,
       height: height,
+      emptyWidth: emptyWidth,
+      emptyHeight: emptyHeight,
+      nonEmptyWidth: nonEmptyWidth,
+      nonEmptyHeight: nonEmptyHeight,
       alignment: alignment,
       imageQuality: quality,
       imageMaxWidth: maxWidth,
@@ -77,9 +111,20 @@ class SuperImagePicker<T extends Object> extends StatelessWidget {
     itemBuilder: itemBuilder,
     onDelete: onDelete,
     onDeleteAll: onDeleteAll,
+    onDeleteRequest: onDeleteRequest,
+    deleteConfirmation: deleteConfirmation,
+    onPickStarted: onPickStarted,
+    onPickFinished: onPickFinished,
+    onPickerFailure: onPickerFailure,
+    validator: validator,
     onPicked: (items) => _onePath(items, onUploadImage),
     onChanged: onChanged,
     onValidationError: onValidationError,
+    localItemBuilder: localItemBuilder,
+    remoteItemBuilder: remoteItemBuilder,
+    pickingBuilder: pickingBuilder,
+    pickErrorBuilder: pickErrorBuilder,
+    sourceOptionBuilder: sourceOptionBuilder,
   );
 }
 
@@ -91,6 +136,13 @@ class SuperImagesPicker<T extends Object> extends StatelessWidget {
     this.initialImages = const [],
     this.initialItemMapper,
     this.config = const SuperMediaPickerConfig(),
+    this.width,
+    this.height,
+    this.emptyWidth,
+    this.emptyHeight,
+    this.nonEmptyWidth,
+    this.nonEmptyHeight,
+    this.alignment,
     this.maxItems,
     this.quality,
     this.maxWidth,
@@ -102,15 +154,34 @@ class SuperImagesPicker<T extends Object> extends StatelessWidget {
     this.itemBuilder,
     this.onDelete,
     this.onDeleteAll,
+    this.onDeleteRequest,
+    this.deleteConfirmation,
+    this.onPickStarted,
+    this.onPickFinished,
+    this.onPickerFailure,
+    this.onReorder,
+    this.validator,
     this.onUploadImages,
     this.onChanged,
     this.onValidationError,
+    this.localItemBuilder,
+    this.remoteItemBuilder,
+    this.pickingBuilder,
+    this.pickErrorBuilder,
+    this.sourceOptionBuilder,
   });
 
   final SuperMediaController? controller;
   final Iterable<T> initialImages;
   final SuperMediaValueMapper<T>? initialItemMapper;
   final SuperMediaPickerConfig config;
+  final double? width;
+  final double? height;
+  final double? emptyWidth;
+  final double? emptyHeight;
+  final double? nonEmptyWidth;
+  final double? nonEmptyHeight;
+  final AlignmentGeometry? alignment;
   final int? maxItems;
   final int? quality;
   final int? maxWidth;
@@ -122,9 +193,21 @@ class SuperImagesPicker<T extends Object> extends StatelessWidget {
   final SuperMediaItemBuilder? itemBuilder;
   final SuperMediaDelete? onDelete;
   final SuperMediaDeleteAll? onDeleteAll;
+  final SuperMediaDeleteRequest? onDeleteRequest;
+  final SuperMediaDeleteConfirmation? deleteConfirmation;
+  final VoidCallback? onPickStarted;
+  final VoidCallback? onPickFinished;
+  final SuperMediaPickerFailure? onPickerFailure;
+  final SuperMediaReordered? onReorder;
+  final SuperMediaValidator? validator;
   final SuperUploadPaths? onUploadImages;
   final SuperMediaChanged? onChanged;
   final SuperMediaError? onValidationError;
+  final SuperMediaItemBuilder? localItemBuilder;
+  final SuperMediaItemBuilder? remoteItemBuilder;
+  final WidgetBuilder? pickingBuilder;
+  final SuperMediaPickerErrorBuilder? pickErrorBuilder;
+  final SuperMediaSourceOptionBuilder? sourceOptionBuilder;
 
   @override
   Widget build(BuildContext context) => SuperMediaPicker<T>(
@@ -135,6 +218,13 @@ class SuperImagesPicker<T extends Object> extends StatelessWidget {
       config,
       const {SuperMediaType.image},
       multiple: true,
+      width: width,
+      height: height,
+      emptyWidth: emptyWidth,
+      emptyHeight: emptyHeight,
+      nonEmptyWidth: nonEmptyWidth,
+      nonEmptyHeight: nonEmptyHeight,
+      alignment: alignment,
       maxItems: maxItems,
       maxImages: maxItems,
       imageQuality: quality,
@@ -148,9 +238,21 @@ class SuperImagesPicker<T extends Object> extends StatelessWidget {
     itemBuilder: itemBuilder,
     onDelete: onDelete,
     onDeleteAll: onDeleteAll,
+    onDeleteRequest: onDeleteRequest,
+    deleteConfirmation: deleteConfirmation,
+    onPickStarted: onPickStarted,
+    onPickFinished: onPickFinished,
+    onPickerFailure: onPickerFailure,
+    onReorder: onReorder,
+    validator: validator,
     onPicked: (items) => _manyPaths(items, onUploadImages),
     onChanged: onChanged,
     onValidationError: onValidationError,
+    localItemBuilder: localItemBuilder,
+    remoteItemBuilder: remoteItemBuilder,
+    pickingBuilder: pickingBuilder,
+    pickErrorBuilder: pickErrorBuilder,
+    sourceOptionBuilder: sourceOptionBuilder,
   );
 }
 
@@ -164,6 +266,10 @@ class SuperVideoPicker<T extends Object> extends StatelessWidget {
     this.config = const SuperMediaPickerConfig(),
     this.width,
     this.height,
+    this.emptyWidth,
+    this.emptyHeight,
+    this.nonEmptyWidth,
+    this.nonEmptyHeight,
     this.alignment,
     this.maxSizeBytes,
     this.maxDuration,
@@ -172,9 +278,20 @@ class SuperVideoPicker<T extends Object> extends StatelessWidget {
     this.itemBuilder,
     this.onDelete,
     this.onDeleteAll,
+    this.onDeleteRequest,
+    this.deleteConfirmation,
+    this.onPickStarted,
+    this.onPickFinished,
+    this.onPickerFailure,
+    this.validator,
     this.onUploadVideo,
     this.onChanged,
     this.onValidationError,
+    this.localItemBuilder,
+    this.remoteItemBuilder,
+    this.pickingBuilder,
+    this.pickErrorBuilder,
+    this.sourceOptionBuilder,
   });
 
   final SuperMediaController? controller;
@@ -183,6 +300,10 @@ class SuperVideoPicker<T extends Object> extends StatelessWidget {
   final SuperMediaPickerConfig config;
   final double? width;
   final double? height;
+  final double? emptyWidth;
+  final double? emptyHeight;
+  final double? nonEmptyWidth;
+  final double? nonEmptyHeight;
   final AlignmentGeometry? alignment;
   final int? maxSizeBytes;
   final Duration? maxDuration;
@@ -191,9 +312,20 @@ class SuperVideoPicker<T extends Object> extends StatelessWidget {
   final SuperMediaItemBuilder? itemBuilder;
   final SuperMediaDelete? onDelete;
   final SuperMediaDeleteAll? onDeleteAll;
+  final SuperMediaDeleteRequest? onDeleteRequest;
+  final SuperMediaDeleteConfirmation? deleteConfirmation;
+  final VoidCallback? onPickStarted;
+  final VoidCallback? onPickFinished;
+  final SuperMediaPickerFailure? onPickerFailure;
+  final SuperMediaValidator? validator;
   final SuperUploadPath? onUploadVideo;
   final SuperMediaChanged? onChanged;
   final SuperMediaError? onValidationError;
+  final SuperMediaItemBuilder? localItemBuilder;
+  final SuperMediaItemBuilder? remoteItemBuilder;
+  final WidgetBuilder? pickingBuilder;
+  final SuperMediaPickerErrorBuilder? pickErrorBuilder;
+  final SuperMediaSourceOptionBuilder? sourceOptionBuilder;
 
   @override
   Widget build(BuildContext context) => SuperMediaPicker<T>(
@@ -206,6 +338,10 @@ class SuperVideoPicker<T extends Object> extends StatelessWidget {
       multiple: false,
       width: width,
       height: height,
+      emptyWidth: emptyWidth,
+      emptyHeight: emptyHeight,
+      nonEmptyWidth: nonEmptyWidth,
+      nonEmptyHeight: nonEmptyHeight,
       alignment: alignment,
       videoMaxSizeBytes: maxSizeBytes,
       videoMaxDuration: maxDuration,
@@ -215,9 +351,20 @@ class SuperVideoPicker<T extends Object> extends StatelessWidget {
     itemBuilder: itemBuilder,
     onDelete: onDelete,
     onDeleteAll: onDeleteAll,
+    onDeleteRequest: onDeleteRequest,
+    deleteConfirmation: deleteConfirmation,
+    onPickStarted: onPickStarted,
+    onPickFinished: onPickFinished,
+    onPickerFailure: onPickerFailure,
+    validator: validator,
     onPicked: (items) => _onePath(items, onUploadVideo),
     onChanged: onChanged,
     onValidationError: onValidationError,
+    localItemBuilder: localItemBuilder,
+    remoteItemBuilder: remoteItemBuilder,
+    pickingBuilder: pickingBuilder,
+    pickErrorBuilder: pickErrorBuilder,
+    sourceOptionBuilder: sourceOptionBuilder,
   );
 }
 
@@ -229,6 +376,13 @@ class SuperVideosPicker<T extends Object> extends StatelessWidget {
     this.initialVideos = const [],
     this.initialItemMapper,
     this.config = const SuperMediaPickerConfig(),
+    this.width,
+    this.height,
+    this.emptyWidth,
+    this.emptyHeight,
+    this.nonEmptyWidth,
+    this.nonEmptyHeight,
+    this.alignment,
     this.maxItems,
     this.maxSizeBytes,
     this.maxTotalSizeBytes,
@@ -238,15 +392,34 @@ class SuperVideosPicker<T extends Object> extends StatelessWidget {
     this.itemBuilder,
     this.onDelete,
     this.onDeleteAll,
+    this.onDeleteRequest,
+    this.deleteConfirmation,
+    this.onPickStarted,
+    this.onPickFinished,
+    this.onPickerFailure,
+    this.onReorder,
+    this.validator,
     this.onUploadVideos,
     this.onChanged,
     this.onValidationError,
+    this.localItemBuilder,
+    this.remoteItemBuilder,
+    this.pickingBuilder,
+    this.pickErrorBuilder,
+    this.sourceOptionBuilder,
   });
 
   final SuperMediaController? controller;
   final Iterable<T> initialVideos;
   final SuperMediaValueMapper<T>? initialItemMapper;
   final SuperMediaPickerConfig config;
+  final double? width;
+  final double? height;
+  final double? emptyWidth;
+  final double? emptyHeight;
+  final double? nonEmptyWidth;
+  final double? nonEmptyHeight;
+  final AlignmentGeometry? alignment;
   final int? maxItems;
   final int? maxSizeBytes;
   final int? maxTotalSizeBytes;
@@ -256,9 +429,21 @@ class SuperVideosPicker<T extends Object> extends StatelessWidget {
   final SuperMediaItemBuilder? itemBuilder;
   final SuperMediaDelete? onDelete;
   final SuperMediaDeleteAll? onDeleteAll;
+  final SuperMediaDeleteRequest? onDeleteRequest;
+  final SuperMediaDeleteConfirmation? deleteConfirmation;
+  final VoidCallback? onPickStarted;
+  final VoidCallback? onPickFinished;
+  final SuperMediaPickerFailure? onPickerFailure;
+  final SuperMediaReordered? onReorder;
+  final SuperMediaValidator? validator;
   final SuperUploadPaths? onUploadVideos;
   final SuperMediaChanged? onChanged;
   final SuperMediaError? onValidationError;
+  final SuperMediaItemBuilder? localItemBuilder;
+  final SuperMediaItemBuilder? remoteItemBuilder;
+  final WidgetBuilder? pickingBuilder;
+  final SuperMediaPickerErrorBuilder? pickErrorBuilder;
+  final SuperMediaSourceOptionBuilder? sourceOptionBuilder;
 
   @override
   Widget build(BuildContext context) => SuperMediaPicker<T>(
@@ -269,6 +454,13 @@ class SuperVideosPicker<T extends Object> extends StatelessWidget {
       config,
       const {SuperMediaType.video},
       multiple: true,
+      width: width,
+      height: height,
+      emptyWidth: emptyWidth,
+      emptyHeight: emptyHeight,
+      nonEmptyWidth: nonEmptyWidth,
+      nonEmptyHeight: nonEmptyHeight,
+      alignment: alignment,
       maxItems: maxItems,
       maxVideos: maxItems,
       videoMaxSizeBytes: maxSizeBytes,
@@ -280,9 +472,21 @@ class SuperVideosPicker<T extends Object> extends StatelessWidget {
     itemBuilder: itemBuilder,
     onDelete: onDelete,
     onDeleteAll: onDeleteAll,
+    onDeleteRequest: onDeleteRequest,
+    deleteConfirmation: deleteConfirmation,
+    onPickStarted: onPickStarted,
+    onPickFinished: onPickFinished,
+    onPickerFailure: onPickerFailure,
+    onReorder: onReorder,
+    validator: validator,
     onPicked: (items) => _manyPaths(items, onUploadVideos),
     onChanged: onChanged,
     onValidationError: onValidationError,
+    localItemBuilder: localItemBuilder,
+    remoteItemBuilder: remoteItemBuilder,
+    pickingBuilder: pickingBuilder,
+    pickErrorBuilder: pickErrorBuilder,
+    sourceOptionBuilder: sourceOptionBuilder,
   );
 }
 
@@ -296,6 +500,10 @@ class SuperFilePicker<T extends Object> extends StatelessWidget {
     this.config = const SuperMediaPickerConfig(),
     this.width,
     this.height,
+    this.emptyWidth,
+    this.emptyHeight,
+    this.nonEmptyWidth,
+    this.nonEmptyHeight,
     this.alignment,
     this.maxSizeBytes,
     this.transform,
@@ -303,9 +511,20 @@ class SuperFilePicker<T extends Object> extends StatelessWidget {
     this.itemBuilder,
     this.onDelete,
     this.onDeleteAll,
+    this.onDeleteRequest,
+    this.deleteConfirmation,
+    this.onPickStarted,
+    this.onPickFinished,
+    this.onPickerFailure,
+    this.validator,
     this.onUploadFile,
     this.onChanged,
     this.onValidationError,
+    this.localItemBuilder,
+    this.remoteItemBuilder,
+    this.pickingBuilder,
+    this.pickErrorBuilder,
+    this.sourceOptionBuilder,
   });
 
   final SuperMediaController? controller;
@@ -314,6 +533,10 @@ class SuperFilePicker<T extends Object> extends StatelessWidget {
   final SuperMediaPickerConfig config;
   final double? width;
   final double? height;
+  final double? emptyWidth;
+  final double? emptyHeight;
+  final double? nonEmptyWidth;
+  final double? nonEmptyHeight;
   final AlignmentGeometry? alignment;
   final int? maxSizeBytes;
   final SuperMediaTransform? transform;
@@ -321,9 +544,20 @@ class SuperFilePicker<T extends Object> extends StatelessWidget {
   final SuperMediaItemBuilder? itemBuilder;
   final SuperMediaDelete? onDelete;
   final SuperMediaDeleteAll? onDeleteAll;
+  final SuperMediaDeleteRequest? onDeleteRequest;
+  final SuperMediaDeleteConfirmation? deleteConfirmation;
+  final VoidCallback? onPickStarted;
+  final VoidCallback? onPickFinished;
+  final SuperMediaPickerFailure? onPickerFailure;
+  final SuperMediaValidator? validator;
   final SuperUploadPath? onUploadFile;
   final SuperMediaChanged? onChanged;
   final SuperMediaError? onValidationError;
+  final SuperMediaItemBuilder? localItemBuilder;
+  final SuperMediaItemBuilder? remoteItemBuilder;
+  final WidgetBuilder? pickingBuilder;
+  final SuperMediaPickerErrorBuilder? pickErrorBuilder;
+  final SuperMediaSourceOptionBuilder? sourceOptionBuilder;
 
   @override
   Widget build(BuildContext context) => SuperMediaPicker<T>(
@@ -336,6 +570,10 @@ class SuperFilePicker<T extends Object> extends StatelessWidget {
       multiple: false,
       width: width,
       height: height,
+      emptyWidth: emptyWidth,
+      emptyHeight: emptyHeight,
+      nonEmptyWidth: nonEmptyWidth,
+      nonEmptyHeight: nonEmptyHeight,
       alignment: alignment,
       fileMaxSizeBytes: maxSizeBytes,
     ),
@@ -344,9 +582,20 @@ class SuperFilePicker<T extends Object> extends StatelessWidget {
     itemBuilder: itemBuilder,
     onDelete: onDelete,
     onDeleteAll: onDeleteAll,
+    onDeleteRequest: onDeleteRequest,
+    deleteConfirmation: deleteConfirmation,
+    onPickStarted: onPickStarted,
+    onPickFinished: onPickFinished,
+    onPickerFailure: onPickerFailure,
+    validator: validator,
     onPicked: (items) => _onePath(items, onUploadFile),
     onChanged: onChanged,
     onValidationError: onValidationError,
+    localItemBuilder: localItemBuilder,
+    remoteItemBuilder: remoteItemBuilder,
+    pickingBuilder: pickingBuilder,
+    pickErrorBuilder: pickErrorBuilder,
+    sourceOptionBuilder: sourceOptionBuilder,
   );
 }
 
@@ -358,6 +607,13 @@ class SuperFilesPicker<T extends Object> extends StatelessWidget {
     this.initialFiles = const [],
     this.initialItemMapper,
     this.config = const SuperMediaPickerConfig(),
+    this.width,
+    this.height,
+    this.emptyWidth,
+    this.emptyHeight,
+    this.nonEmptyWidth,
+    this.nonEmptyHeight,
+    this.alignment,
     this.maxItems,
     this.maxSizeBytes,
     this.maxTotalSizeBytes,
@@ -366,15 +622,34 @@ class SuperFilesPicker<T extends Object> extends StatelessWidget {
     this.itemBuilder,
     this.onDelete,
     this.onDeleteAll,
+    this.onDeleteRequest,
+    this.deleteConfirmation,
+    this.onPickStarted,
+    this.onPickFinished,
+    this.onPickerFailure,
+    this.onReorder,
+    this.validator,
     this.onUploadFiles,
     this.onChanged,
     this.onValidationError,
+    this.localItemBuilder,
+    this.remoteItemBuilder,
+    this.pickingBuilder,
+    this.pickErrorBuilder,
+    this.sourceOptionBuilder,
   });
 
   final SuperMediaController? controller;
   final Iterable<T> initialFiles;
   final SuperMediaValueMapper<T>? initialItemMapper;
   final SuperMediaPickerConfig config;
+  final double? width;
+  final double? height;
+  final double? emptyWidth;
+  final double? emptyHeight;
+  final double? nonEmptyWidth;
+  final double? nonEmptyHeight;
+  final AlignmentGeometry? alignment;
   final int? maxItems;
   final int? maxSizeBytes;
   final int? maxTotalSizeBytes;
@@ -383,9 +658,21 @@ class SuperFilesPicker<T extends Object> extends StatelessWidget {
   final SuperMediaItemBuilder? itemBuilder;
   final SuperMediaDelete? onDelete;
   final SuperMediaDeleteAll? onDeleteAll;
+  final SuperMediaDeleteRequest? onDeleteRequest;
+  final SuperMediaDeleteConfirmation? deleteConfirmation;
+  final VoidCallback? onPickStarted;
+  final VoidCallback? onPickFinished;
+  final SuperMediaPickerFailure? onPickerFailure;
+  final SuperMediaReordered? onReorder;
+  final SuperMediaValidator? validator;
   final SuperUploadPaths? onUploadFiles;
   final SuperMediaChanged? onChanged;
   final SuperMediaError? onValidationError;
+  final SuperMediaItemBuilder? localItemBuilder;
+  final SuperMediaItemBuilder? remoteItemBuilder;
+  final WidgetBuilder? pickingBuilder;
+  final SuperMediaPickerErrorBuilder? pickErrorBuilder;
+  final SuperMediaSourceOptionBuilder? sourceOptionBuilder;
 
   @override
   Widget build(BuildContext context) => SuperMediaPicker<T>(
@@ -396,6 +683,13 @@ class SuperFilesPicker<T extends Object> extends StatelessWidget {
       config,
       const {SuperMediaType.file},
       multiple: true,
+      width: width,
+      height: height,
+      emptyWidth: emptyWidth,
+      emptyHeight: emptyHeight,
+      nonEmptyWidth: nonEmptyWidth,
+      nonEmptyHeight: nonEmptyHeight,
+      alignment: alignment,
       maxItems: maxItems,
       maxFiles: maxItems,
       fileMaxSizeBytes: maxSizeBytes,
@@ -406,9 +700,21 @@ class SuperFilesPicker<T extends Object> extends StatelessWidget {
     itemBuilder: itemBuilder,
     onDelete: onDelete,
     onDeleteAll: onDeleteAll,
+    onDeleteRequest: onDeleteRequest,
+    deleteConfirmation: deleteConfirmation,
+    onPickStarted: onPickStarted,
+    onPickFinished: onPickFinished,
+    onPickerFailure: onPickerFailure,
+    onReorder: onReorder,
+    validator: validator,
     onPicked: (items) => _manyPaths(items, onUploadFiles),
     onChanged: onChanged,
     onValidationError: onValidationError,
+    localItemBuilder: localItemBuilder,
+    remoteItemBuilder: remoteItemBuilder,
+    pickingBuilder: pickingBuilder,
+    pickErrorBuilder: pickErrorBuilder,
+    sourceOptionBuilder: sourceOptionBuilder,
   );
 }
 
@@ -422,6 +728,10 @@ class SuperSingleMediaPicker<T extends Object> extends StatelessWidget {
     this.config = const SuperMediaPickerConfig(),
     this.width,
     this.height,
+    this.emptyWidth,
+    this.emptyHeight,
+    this.nonEmptyWidth,
+    this.nonEmptyHeight,
     this.alignment,
     this.imageQuality,
     this.imageMaxWidth,
@@ -434,9 +744,20 @@ class SuperSingleMediaPicker<T extends Object> extends StatelessWidget {
     this.itemBuilder,
     this.onDelete,
     this.onDeleteAll,
+    this.onDeleteRequest,
+    this.deleteConfirmation,
+    this.onPickStarted,
+    this.onPickFinished,
+    this.onPickerFailure,
+    this.validator,
     this.onUploadMedia,
     this.onChanged,
     this.onValidationError,
+    this.localItemBuilder,
+    this.remoteItemBuilder,
+    this.pickingBuilder,
+    this.pickErrorBuilder,
+    this.sourceOptionBuilder,
   });
 
   final SuperMediaController? controller;
@@ -445,6 +766,10 @@ class SuperSingleMediaPicker<T extends Object> extends StatelessWidget {
   final SuperMediaPickerConfig config;
   final double? width;
   final double? height;
+  final double? emptyWidth;
+  final double? emptyHeight;
+  final double? nonEmptyWidth;
+  final double? nonEmptyHeight;
   final AlignmentGeometry? alignment;
   final int? imageQuality;
   final int? imageMaxWidth;
@@ -457,9 +782,20 @@ class SuperSingleMediaPicker<T extends Object> extends StatelessWidget {
   final SuperMediaItemBuilder? itemBuilder;
   final SuperMediaDelete? onDelete;
   final SuperMediaDeleteAll? onDeleteAll;
+  final SuperMediaDeleteRequest? onDeleteRequest;
+  final SuperMediaDeleteConfirmation? deleteConfirmation;
+  final VoidCallback? onPickStarted;
+  final VoidCallback? onPickFinished;
+  final SuperMediaPickerFailure? onPickerFailure;
+  final SuperMediaValidator? validator;
   final SuperUploadPath? onUploadMedia;
   final SuperMediaChanged? onChanged;
   final SuperMediaError? onValidationError;
+  final SuperMediaItemBuilder? localItemBuilder;
+  final SuperMediaItemBuilder? remoteItemBuilder;
+  final WidgetBuilder? pickingBuilder;
+  final SuperMediaPickerErrorBuilder? pickErrorBuilder;
+  final SuperMediaSourceOptionBuilder? sourceOptionBuilder;
 
   @override
   Widget build(BuildContext context) => SuperMediaPicker<T>(
@@ -472,6 +808,10 @@ class SuperSingleMediaPicker<T extends Object> extends StatelessWidget {
       multiple: false,
       width: width,
       height: height,
+      emptyWidth: emptyWidth,
+      emptyHeight: emptyHeight,
+      nonEmptyWidth: nonEmptyWidth,
+      nonEmptyHeight: nonEmptyHeight,
       alignment: alignment,
       imageQuality: imageQuality,
       imageMaxWidth: imageMaxWidth,
@@ -485,9 +825,20 @@ class SuperSingleMediaPicker<T extends Object> extends StatelessWidget {
     itemBuilder: itemBuilder,
     onDelete: onDelete,
     onDeleteAll: onDeleteAll,
+    onDeleteRequest: onDeleteRequest,
+    deleteConfirmation: deleteConfirmation,
+    onPickStarted: onPickStarted,
+    onPickFinished: onPickFinished,
+    onPickerFailure: onPickerFailure,
+    validator: validator,
     onPicked: (items) => _onePath(items, onUploadMedia),
     onChanged: onChanged,
     onValidationError: onValidationError,
+    localItemBuilder: localItemBuilder,
+    remoteItemBuilder: remoteItemBuilder,
+    pickingBuilder: pickingBuilder,
+    pickErrorBuilder: pickErrorBuilder,
+    sourceOptionBuilder: sourceOptionBuilder,
   );
 }
 
@@ -499,6 +850,13 @@ class SuperMultipleMediaPicker<T extends Object> extends StatelessWidget {
     this.initialMedia = const [],
     this.initialItemMapper,
     this.config = const SuperMediaPickerConfig(),
+    this.width,
+    this.height,
+    this.emptyWidth,
+    this.emptyHeight,
+    this.nonEmptyWidth,
+    this.nonEmptyHeight,
+    this.alignment,
     this.maxItems,
     this.maxImages,
     this.maxVideos,
@@ -514,15 +872,34 @@ class SuperMultipleMediaPicker<T extends Object> extends StatelessWidget {
     this.itemBuilder,
     this.onDelete,
     this.onDeleteAll,
+    this.onDeleteRequest,
+    this.deleteConfirmation,
+    this.onPickStarted,
+    this.onPickFinished,
+    this.onPickerFailure,
+    this.onReorder,
+    this.validator,
     this.onUploadMedia,
     this.onChanged,
     this.onValidationError,
+    this.localItemBuilder,
+    this.remoteItemBuilder,
+    this.pickingBuilder,
+    this.pickErrorBuilder,
+    this.sourceOptionBuilder,
   });
 
   final SuperMediaController? controller;
   final Iterable<T> initialMedia;
   final SuperMediaValueMapper<T>? initialItemMapper;
   final SuperMediaPickerConfig config;
+  final double? width;
+  final double? height;
+  final double? emptyWidth;
+  final double? emptyHeight;
+  final double? nonEmptyWidth;
+  final double? nonEmptyHeight;
+  final AlignmentGeometry? alignment;
   final int? maxItems;
   final int? maxImages;
   final int? maxVideos;
@@ -538,9 +915,21 @@ class SuperMultipleMediaPicker<T extends Object> extends StatelessWidget {
   final SuperMediaItemBuilder? itemBuilder;
   final SuperMediaDelete? onDelete;
   final SuperMediaDeleteAll? onDeleteAll;
+  final SuperMediaDeleteRequest? onDeleteRequest;
+  final SuperMediaDeleteConfirmation? deleteConfirmation;
+  final VoidCallback? onPickStarted;
+  final VoidCallback? onPickFinished;
+  final SuperMediaPickerFailure? onPickerFailure;
+  final SuperMediaReordered? onReorder;
+  final SuperMediaValidator? validator;
   final SuperUploadPaths? onUploadMedia;
   final SuperMediaChanged? onChanged;
   final SuperMediaError? onValidationError;
+  final SuperMediaItemBuilder? localItemBuilder;
+  final SuperMediaItemBuilder? remoteItemBuilder;
+  final WidgetBuilder? pickingBuilder;
+  final SuperMediaPickerErrorBuilder? pickErrorBuilder;
+  final SuperMediaSourceOptionBuilder? sourceOptionBuilder;
 
   @override
   Widget build(BuildContext context) => SuperMediaPicker<T>(
@@ -551,6 +940,13 @@ class SuperMultipleMediaPicker<T extends Object> extends StatelessWidget {
       config,
       const {SuperMediaType.image, SuperMediaType.video},
       multiple: true,
+      width: width,
+      height: height,
+      emptyWidth: emptyWidth,
+      emptyHeight: emptyHeight,
+      nonEmptyWidth: nonEmptyWidth,
+      nonEmptyHeight: nonEmptyHeight,
+      alignment: alignment,
       maxItems: maxItems,
       maxImages: maxImages,
       maxVideos: maxVideos,
@@ -567,9 +963,21 @@ class SuperMultipleMediaPicker<T extends Object> extends StatelessWidget {
     itemBuilder: itemBuilder,
     onDelete: onDelete,
     onDeleteAll: onDeleteAll,
+    onDeleteRequest: onDeleteRequest,
+    deleteConfirmation: deleteConfirmation,
+    onPickStarted: onPickStarted,
+    onPickFinished: onPickFinished,
+    onPickerFailure: onPickerFailure,
+    onReorder: onReorder,
+    validator: validator,
     onPicked: (items) => _manyPaths(items, onUploadMedia),
     onChanged: onChanged,
     onValidationError: onValidationError,
+    localItemBuilder: localItemBuilder,
+    remoteItemBuilder: remoteItemBuilder,
+    pickingBuilder: pickingBuilder,
+    pickErrorBuilder: pickErrorBuilder,
+    sourceOptionBuilder: sourceOptionBuilder,
   );
 }
 
@@ -593,6 +1001,10 @@ SuperMediaPickerConfig _scope(
   required bool multiple,
   double? width,
   double? height,
+  double? emptyWidth,
+  double? emptyHeight,
+  double? nonEmptyWidth,
+  double? nonEmptyHeight,
   AlignmentGeometry? alignment,
   int? maxItems,
   int? maxImages,
@@ -623,6 +1035,10 @@ SuperMediaPickerConfig _scope(
     showRemoteFileName: config.showRemoteFileName,
     showRemoveButton: config.showRemoveButton,
     showRemoteBadge: config.showRemoteBadge,
+    confirmDelete: config.confirmDelete,
+    sourcePresentation: config.sourcePresentation,
+    directSource: config.directSource,
+    directType: config.directType,
     layout: config.layout,
     crossAxisCount: multiple ? config.crossAxisCount : 1,
     spacing: config.spacing,
@@ -674,6 +1090,10 @@ SuperMediaPickerConfig _scope(
     itemFrame: SuperMediaItemFrameConfig(
       width: width ?? config.itemFrame.width,
       height: height ?? config.itemFrame.height,
+      emptyWidth: emptyWidth ?? config.itemFrame.emptyWidth,
+      emptyHeight: emptyHeight ?? config.itemFrame.emptyHeight,
+      nonEmptyWidth: nonEmptyWidth ?? config.itemFrame.nonEmptyWidth,
+      nonEmptyHeight: nonEmptyHeight ?? config.itemFrame.nonEmptyHeight,
       alignment: alignment ?? config.itemFrame.alignment,
     ),
     text: config.text,

@@ -22,6 +22,18 @@ enum SuperMediaSource {
   files,
 }
 
+/// Controls how the available media sources are presented to the user.
+enum SuperMediaSourcePresentation {
+  /// Display the available sources in a modal bottom sheet.
+  bottomSheet,
+
+  /// Display the available sources in an icon-based dialog.
+  dialog,
+
+  /// Open a configured source immediately without showing a chooser.
+  direct,
+}
+
 /// Describes whether an item came from the device or an API.
 enum SuperMediaItemOrigin {
   /// A newly selected file with a local path.

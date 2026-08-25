@@ -8,10 +8,10 @@ void main() {
 
     expect(find.text('Media Picker Manager'), findsOneWidget);
     for (final title in [
-      'One image',
+      'One image — source dialog',
       'Any typed model',
-      'Multiple images',
-      'One video',
+      'Multiple images — bottom sheet',
+      'One video — direct Gallery',
       'Multiple videos',
       'One file',
       'Multiple files',

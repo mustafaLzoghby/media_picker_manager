@@ -49,8 +49,23 @@ class SuperFileConfig {
 
 /// Controls the frame around the complete media picker.
 class SuperMediaFrameConfig {
+  /// Width used for both empty and non-empty states unless overridden.
   final double? width;
+
+  /// Height used for both empty and non-empty states unless overridden.
   final double? height;
+
+  /// Width used only while the picker has no selected items.
+  final double? emptyWidth;
+
+  /// Height used only while the picker has no selected items.
+  final double? emptyHeight;
+
+  /// Width used only while the picker has one or more selected items.
+  final double? nonEmptyWidth;
+
+  /// Height used only while the picker has one or more selected items.
+  final double? nonEmptyHeight;
   final BoxConstraints? constraints;
   final EdgeInsetsGeometry? margin;
   final EdgeInsetsGeometry? padding;
@@ -62,6 +77,10 @@ class SuperMediaFrameConfig {
   const SuperMediaFrameConfig({
     this.width,
     this.height,
+    this.emptyWidth,
+    this.emptyHeight,
+    this.nonEmptyWidth,
+    this.nonEmptyHeight,
     this.constraints,
     this.margin,
     this.padding,
@@ -70,21 +89,64 @@ class SuperMediaFrameConfig {
     this.foregroundDecoration,
     this.clipBehavior = Clip.none,
   }) : assert(width == null || width >= 0),
-       assert(height == null || height >= 0);
+       assert(height == null || height >= 0),
+       assert(emptyWidth == null || emptyWidth >= 0),
+       assert(emptyHeight == null || emptyHeight >= 0),
+       assert(nonEmptyWidth == null || nonEmptyWidth >= 0),
+       assert(nonEmptyHeight == null || nonEmptyHeight >= 0);
+
+  /// Resolves the width for the current selection state.
+  double? widthFor({required bool isEmpty}) =>
+      isEmpty ? emptyWidth ?? width : nonEmptyWidth ?? width;
+
+  /// Resolves the height for the current selection state.
+  double? heightFor({required bool isEmpty}) =>
+      isEmpty ? emptyHeight ?? height : nonEmptyHeight ?? height;
 }
 
 /// Controls the size and alignment of each media tile and add button.
 class SuperMediaItemFrameConfig {
+  /// Width used for both empty and non-empty states unless overridden.
   final double? width;
+
+  /// Height used for both empty and non-empty states unless overridden.
   final double? height;
+
+  /// Tile width used only while the picker has no selected items.
+  final double? emptyWidth;
+
+  /// Tile height used only while the picker has no selected items.
+  final double? emptyHeight;
+
+  /// Tile width used while the picker has one or more selected items.
+  final double? nonEmptyWidth;
+
+  /// Tile height used while the picker has one or more selected items.
+  final double? nonEmptyHeight;
   final AlignmentGeometry alignment;
 
   const SuperMediaItemFrameConfig({
     this.width,
     this.height,
+    this.emptyWidth,
+    this.emptyHeight,
+    this.nonEmptyWidth,
+    this.nonEmptyHeight,
     this.alignment = AlignmentDirectional.centerStart,
   }) : assert(width == null || width > 0),
-       assert(height == null || height > 0);
+       assert(height == null || height > 0),
+       assert(emptyWidth == null || emptyWidth > 0),
+       assert(emptyHeight == null || emptyHeight > 0),
+       assert(nonEmptyWidth == null || nonEmptyWidth > 0),
+       assert(nonEmptyHeight == null || nonEmptyHeight > 0);
+
+  /// Resolves the tile width for the current selection state.
+  double? widthFor({required bool isEmpty}) =>
+      isEmpty ? emptyWidth ?? width : nonEmptyWidth ?? width;
+
+  /// Resolves the tile height for the current selection state.
+  double? heightFor({required bool isEmpty}) =>
+      isEmpty ? emptyHeight ?? height : nonEmptyHeight ?? height;
 }
 
 /// Controls every built-in user-facing label.
@@ -99,6 +161,13 @@ class SuperMediaTextConfig {
   final String unknownSize;
   final String unableToDisplayMedia;
   final String unableToPlayVideo;
+  final String chooseSource;
+  final String confirmDeleteTitle;
+  final String confirmDeleteMessage;
+  final String cancel;
+  final String delete;
+  final String retry;
+  final String pickerFailed;
   final bool _usesDeviceLocale;
 
   const SuperMediaTextConfig({
@@ -112,6 +181,13 @@ class SuperMediaTextConfig {
     this.unknownSize = 'Unknown',
     this.unableToDisplayMedia = 'Unable to display this media',
     this.unableToPlayVideo = 'Unable to play this video',
+    this.chooseSource = 'Choose a source',
+    this.confirmDeleteTitle = 'Delete media?',
+    this.confirmDeleteMessage = 'This item will be removed.',
+    this.cancel = 'Cancel',
+    this.delete = 'Delete',
+    this.retry = 'Retry',
+    this.pickerFailed = 'Unable to open the media picker',
   }) : _usesDeviceLocale = false;
 
   const SuperMediaTextConfig.device()
@@ -125,6 +201,13 @@ class SuperMediaTextConfig {
       unknownSize = 'Unknown',
       unableToDisplayMedia = 'Unable to display this media',
       unableToPlayVideo = 'Unable to play this video',
+      chooseSource = 'Choose a source',
+      confirmDeleteTitle = 'Delete media?',
+      confirmDeleteMessage = 'This item will be removed.',
+      cancel = 'Cancel',
+      delete = 'Delete',
+      retry = 'Retry',
+      pickerFailed = 'Unable to open the media picker',
       _usesDeviceLocale = true;
 
   static SuperMediaTextConfig forLocale(Locale locale) {
@@ -140,6 +223,13 @@ class SuperMediaTextConfig {
         unknownSize: 'غير معروف',
         unableToDisplayMedia: 'تعذر عرض هذه الوسائط',
         unableToPlayVideo: 'تعذر تشغيل هذا الفيديو',
+        chooseSource: 'اختر مصدر الوسائط',
+        confirmDeleteTitle: 'حذف الوسائط؟',
+        confirmDeleteMessage: 'سيتم حذف هذا العنصر.',
+        cancel: 'إلغاء',
+        delete: 'حذف',
+        retry: 'إعادة المحاولة',
+        pickerFailed: 'تعذر فتح منتقي الوسائط',
       ),
       'fr' => const SuperMediaTextConfig(
         images: 'Images',
@@ -257,6 +347,10 @@ class SuperMediaPickerConfig {
   final bool? showRemoteFileName;
   final bool showRemoveButton;
   final bool showRemoteBadge;
+  final bool confirmDelete;
+  final SuperMediaSourcePresentation sourcePresentation;
+  final SuperMediaSource? directSource;
+  final SuperMediaType? directType;
   final SuperMediaLayout layout;
   final int crossAxisCount;
   final double spacing;
@@ -300,6 +394,10 @@ class SuperMediaPickerConfig {
     this.showRemoteFileName,
     this.showRemoveButton = true,
     this.showRemoteBadge = true,
+    this.confirmDelete = false,
+    this.sourcePresentation = SuperMediaSourcePresentation.bottomSheet,
+    this.directSource,
+    this.directType,
     this.layout = SuperMediaLayout.grid,
     this.crossAxisCount = 3,
     this.spacing = 8,

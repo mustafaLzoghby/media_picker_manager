@@ -93,15 +93,24 @@ class _MediaDemoPageState extends State<MediaDemoPage> {
           ),
           const SizedBox(height: 24),
           _ExampleCard(
-            title: 'One image',
+            title: 'One image — source dialog',
             callback: 'onUploadImage: (path) => upload(path)',
             value: _image,
             child: SuperImagePicker(
               width: double.infinity,
-              height: 170,
+              height: 160,
+              emptyWidth: double.infinity,
+              emptyHeight: 170,
+              nonEmptyWidth: double.infinity,
+              nonEmptyHeight: 240,
               alignment: AlignmentDirectional.centerStart,
               config: const SuperMediaPickerConfig(
+                sourcePresentation: SuperMediaSourcePresentation.dialog,
                 text: SuperMediaTextConfig(addMedia: 'upload'),
+                icons: SuperMediaIconConfig(
+                  images: Icon(Icons.photo_library_outlined),
+                  takePhoto: Icon(Icons.photo_camera_outlined),
+                ),
                 showFileName: false,
                 showFileSize: true,
                 showRemoteBadge: false,
@@ -168,11 +177,16 @@ class _MediaDemoPageState extends State<MediaDemoPage> {
                     showFileName: false,
                     showFileSize: false,
                     showRemoteBadge: false,
+                    confirmDelete: true,
                     layout: SuperMediaLayout.list,
                     itemFrame: SuperMediaItemFrameConfig(height: 120),
                   ),
                   onDelete: (id) => debugPrint('DELETE /media/$id'),
                   onDeleteAll: (ids) => debugPrint('DELETE media IDs: $ids'),
+                  onDeleteRequest: (item) async {
+                    debugPrint('Waiting for DELETE /media/${item.id}');
+                    return true;
+                  },
                   onUploadImages: (paths) => setState(() => _images = paths),
                   onChanged: (_) => setState(() {}),
                 ),
@@ -189,7 +203,7 @@ class _MediaDemoPageState extends State<MediaDemoPage> {
             ),
           ),
           _ExampleCard(
-            title: 'Multiple images',
+            title: 'Multiple images — bottom sheet',
             callback: 'onUploadImages: (paths) => uploadAll(paths)',
             value: _summary(_images),
             child: SuperImagesPicker(
@@ -205,13 +219,20 @@ class _MediaDemoPageState extends State<MediaDemoPage> {
             ),
           ),
           _ExampleCard(
-            title: 'One video',
+            title: 'One video — direct Gallery',
             callback: 'onUploadVideo: (path) => upload(path)',
             value: _video,
             child: SuperVideoPicker(
               width: double.infinity,
               height: 190,
-              config: _simpleConfig,
+              config: const SuperMediaPickerConfig(
+                sources: {SuperMediaSource.gallery},
+                sourcePresentation: SuperMediaSourcePresentation.direct,
+                directSource: SuperMediaSource.gallery,
+                directType: SuperMediaType.video,
+                showFileName: false,
+                showFileSize: true,
+              ),
               onUploadVideo: (path) => setState(() => _video = path),
             ),
           ),
