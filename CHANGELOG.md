@@ -5,6 +5,8 @@
 - Documented required iOS permissions, Android minimum SDK/network permission,
   automatic transitive dependencies, and optional macOS entitlements; the
   example now includes the same platform configuration.
+- Added GitHub repository, issue tracker, documentation metadata, README badges,
+  and GitHub-hosted demo GIF URLs.
 - Initial release.
 - Single and multiple image/video/file picking.
 - Remote/API media support.

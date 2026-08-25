@@ -1,5 +1,9 @@
 # Media Picker Manager
 
+[![pub package](https://img.shields.io/pub/v/media_picker_manager.svg)](https://pub.dev/packages/media_picker_manager)
+[![GitHub repository](https://img.shields.io/badge/GitHub-media__picker__manager-181717?logo=github)](https://github.com/mustafaLzoghby/media_picker_manager)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/mustafaLzoghby/media_picker_manager/blob/main/LICENSE)
+
 A configurable Flutter media picker **and media manager** for create/edit forms. It combines local selections and existing API media in one controller and clearly reports what was added and which remote items were removed.
 
 ## Features
@@ -38,10 +42,10 @@ A configurable Flutter media picker **and media manager** for create/edit forms.
     <th>Multiple media</th>
   </tr>
   <tr>
-    <td><img src="media/image.gif" alt="Image picker demo" width="220"></td>
-    <td><img src="media/multiImages.gif" alt="Multiple images picker demo" width="220"></td>
-    <td><img src="media/media.gif" alt="Media picker demo" width="220"></td>
-    <td><img src="media/multimedia.gif" alt="Multiple media picker demo" width="220"></td>
+    <td><img src="https://raw.githubusercontent.com/mustafaLzoghby/media_picker_manager/main/media/image.gif" alt="Image picker demo" width="220"></td>
+    <td><img src="https://raw.githubusercontent.com/mustafaLzoghby/media_picker_manager/main/media/multiImages.gif" alt="Multiple images picker demo" width="220"></td>
+    <td><img src="https://raw.githubusercontent.com/mustafaLzoghby/media_picker_manager/main/media/media.gif" alt="Media picker demo" width="220"></td>
+    <td><img src="https://raw.githubusercontent.com/mustafaLzoghby/media_picker_manager/main/media/multimedia.gif" alt="Multiple media picker demo" width="220"></td>
   </tr>
 </table>
 
@@ -813,6 +817,9 @@ controller.setUploadProgress(item.id, 0.45);
 controller.markUploaded(item.id);
 ```
 
-## Platform setup
+## Links
 
-Because this package uses `image_picker`, add the normal camera/photo-library usage descriptions required by your iOS app. Android permissions/behavior depend on your target SDK and the underlying picker plugins. Check the current `image_picker` and `file_picker` platform setup when integrating into a production app.
+- [GitHub repository](https://github.com/mustafaLzoghby/media_picker_manager)
+- [Report an issue](https://github.com/mustafaLzoghby/media_picker_manager/issues)
+- [pub.dev package](https://pub.dev/packages/media_picker_manager)
+- [API documentation](https://pub.dev/documentation/media_picker_manager/latest/)

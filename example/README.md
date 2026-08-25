@@ -1,5 +1,8 @@
 # media_picker_manager_example
 
+Example application for
+[media_picker_manager](https://github.com/mustafaLzoghby/media_picker_manager).
+
 A new Flutter project.
 
 ## Getting Started
