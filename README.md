@@ -59,7 +59,7 @@ Or add it manually:
 
 ```yaml
 dependencies:
-  media_picker_manager: ^0.1.4
+  media_picker_manager: ^0.1.5
 ```
 
 The package automatically installs `image_picker`, `file_picker`, `cross_file`,

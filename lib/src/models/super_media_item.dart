@@ -146,8 +146,9 @@ class SuperMediaItem {
     if (value is SuperMediaItem) return value;
     if (value is String) {
       final uri = Uri.tryParse(value);
-      if (uri?.scheme == 'file') {
-        return SuperMediaItem.local(id: value, path: uri!.toFilePath());
+      if (uri?.scheme == 'file' || _looksLikeLocalPath(value)) {
+        final path = uri?.scheme == 'file' ? uri!.toFilePath() : value;
+        return SuperMediaItem.local(id: path, path: path);
       }
       return SuperMediaItem.remote(id: value, url: value);
     }
@@ -303,6 +304,13 @@ class SuperMediaItem {
     return key.toString().toLowerCase().replaceAll(RegExp('[^a-z0-9]'), '');
   }
 
+  static bool _looksLikeLocalPath(String value) {
+    return value.startsWith('/') ||
+        value.startsWith('./') ||
+        value.startsWith('../') ||
+        RegExp(r'^[a-zA-Z]:[\\/]').hasMatch(value);
+  }
+
   /// Normalizes an iterable of strings, maps, files, or custom models.
   static List<SuperMediaItem> fromObjects<T extends Object>(
     Iterable<T> values, {
@@ -314,7 +322,7 @@ class SuperMediaItem {
     ];
   }
 
-  /// Combines singular and plural initial values while removing duplicate IDs.
+  /// Combines singular and plural initial values without duplicate sources.
   static List<SuperMediaItem> fromInitialValues<T extends Object>({
     T? item,
     Iterable<T> items = const [],
@@ -322,14 +330,13 @@ class SuperMediaItem {
   }) {
     final values = <T>[if (item != null) item, ...items];
     final result = <SuperMediaItem>[];
-    final ids = <String>{};
     for (final (index, value) in values.indexed) {
       final media = SuperMediaItem.fromObject(
         value,
         index: index,
         mapper: mapper,
       );
-      if (ids.add(media.id)) result.add(media);
+      if (!result.any((item) => item.hasSameSource(media))) result.add(media);
     }
     return result;
   }
@@ -356,6 +363,13 @@ class SuperMediaItem {
 
   /// Whether this item represents media that already exists in an API.
   bool get isRemote => origin == SuperMediaItemOrigin.remote;
+
+  /// Whether [other] has the same ID, local path, or remote URL.
+  bool hasSameSource(SuperMediaItem other) {
+    if (id == other.id) return true;
+    if (path != null && other.path != null && path == other.path) return true;
+    return url != null && other.url != null && url == other.url;
+  }
 
   /// Whether this remote item has been marked for deletion.
   bool get isRemoved => status == SuperMediaItemStatus.removed;

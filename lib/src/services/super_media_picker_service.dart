@@ -137,7 +137,7 @@ class SuperMediaPickerService {
     for (final file in result.where((file) => file.path != null)) {
       items.add(
         SuperMediaItem.local(
-          id: _id(),
+          id: file.path!,
           path: file.path!,
           name: file.name,
           type: requestedType,
@@ -151,14 +151,11 @@ class SuperMediaPickerService {
   Future<SuperMediaItem> _fromXFile(XFile x, SuperMediaType type) async {
     final size = await x.length();
     return SuperMediaItem.local(
-      id: _id(),
+      id: x.path,
       path: x.path,
       name: x.name.isEmpty ? File(x.path).uri.pathSegments.last : x.name,
       type: type,
       sizeBytes: size,
     );
   }
-
-  String _id() =>
-      '${DateTime.now().microsecondsSinceEpoch}_${Object().hashCode}';
 }

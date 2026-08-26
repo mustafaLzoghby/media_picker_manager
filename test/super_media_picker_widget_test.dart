@@ -95,6 +95,95 @@ void main() {
     items.dispose();
   });
 
+  testWidgets('does not duplicate a picked path passed back as initialImage', (
+    tester,
+  ) async {
+    const path = '/tmp/picked-image.jpg';
+    final controller = SuperMediaController(
+      initialItems: [SuperMediaItem.local(id: 'generated-id', path: path)],
+    );
+    final initialImage = ValueNotifier<String?>(null);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ValueListenableBuilder<String?>(
+            valueListenable: initialImage,
+            builder:
+                (_, value, _) => SuperImagePicker<String>(
+                  controller: controller,
+                  initialImage: value,
+                ),
+          ),
+        ),
+      ),
+    );
+
+    initialImage.value = path;
+    await tester.pump();
+
+    expect(controller.items, hasLength(1));
+    expect(controller.items.single.path, path);
+    initialImage.dispose();
+    controller.dispose();
+  });
+
+  testWidgets('single picker syncs a different incoming initial path', (
+    tester,
+  ) async {
+    final controller = SuperMediaController(
+      initialItems: [
+        SuperMediaItem.local(id: 'picked-id', path: '/tmp/old.jpg'),
+      ],
+    );
+    final initialImage = ValueNotifier<String?>(null);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ValueListenableBuilder<String?>(
+            valueListenable: initialImage,
+            builder:
+                (_, value, _) => SuperImagePicker<String>(
+                  controller: controller,
+                  initialImage: value,
+                ),
+          ),
+        ),
+      ),
+    );
+
+    initialImage.value = '/tmp/new.jpg';
+    await tester.pump();
+
+    expect(controller.items, hasLength(1));
+    expect(controller.items.single.path, '/tmp/new.jpg');
+    initialImage.dispose();
+    controller.dispose();
+  });
+
+  testWidgets('allowMultiple false hides add after one item', (tester) async {
+    final controller = SuperMediaController(
+      initialItems: [
+        SuperMediaItem.local(id: 'only-item', path: '/tmp/only.jpg'),
+      ],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SuperMediaPicker(
+            controller: controller,
+            config: const SuperMediaPickerConfig(allowMultiple: false),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Add media'), findsNothing);
+    controller.dispose();
+  });
+
   testWidgets('supports separate remote and local metadata visibility', (
     tester,
   ) async {

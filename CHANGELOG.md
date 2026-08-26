@@ -1,5 +1,12 @@
-## 0.1.4
+## 0.1.5
 
+- Fixed duplicate single-image tiles when a picked local path is passed back as
+  `initialImage`; local paths now have stable identity and single pickers sync
+  instead of merging.
+- `allowMultiple: false` now hides the add button after one item without also
+  requiring `SuperMediaLimits(maxItems: 1)`.
+- Updated `file_picker` and `cross_file` to their latest compatible patch
+  releases.
 - Fixed localization to follow the application's active locale and text
   direction before falling back to the device locale.
 - Documented full dialog title, source-label, and widget-icon customization.

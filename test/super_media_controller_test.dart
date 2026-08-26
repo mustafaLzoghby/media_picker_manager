@@ -84,6 +84,34 @@ void main() {
     expect(controller.items.single.type, SuperMediaType.image);
   });
 
+  test('absolute path strings become stable local items', () {
+    final item = SuperMediaItem.fromObject('/tmp/picked-image.jpg');
+
+    expect(item.isLocal, isTrue);
+    expect(item.path, '/tmp/picked-image.jpg');
+    expect(item.id, '/tmp/picked-image.jpg');
+  });
+
+  test('same local path cannot be added with a different id', () {
+    final controller = SuperMediaController(
+      initialItems: [
+        SuperMediaItem.local(id: 'random-id', path: '/tmp/same-image.jpg'),
+      ],
+    );
+
+    final error = controller.add(
+      SuperMediaItem.local(
+        id: '/tmp/same-image.jpg',
+        path: '/tmp/same-image.jpg',
+      ),
+      config: const SuperMediaPickerConfig(),
+    );
+
+    expect(error, isNull);
+    expect(controller.items, hasLength(1));
+    controller.dispose();
+  });
+
   test('maps accept common API key styles', () {
     final controller = SuperMediaController(
       initialItem: {

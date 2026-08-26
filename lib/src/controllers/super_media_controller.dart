@@ -153,7 +153,7 @@ class SuperMediaController<T extends Object> extends ChangeNotifier {
     SuperMediaItem item, {
     required SuperMediaPickerConfig config,
   }) {
-    if (_items.any((e) => e.id == item.id)) return null;
+    if (_items.any((current) => current.hasSameSource(item))) return null;
     final error = validateItem(
       item,
       config,

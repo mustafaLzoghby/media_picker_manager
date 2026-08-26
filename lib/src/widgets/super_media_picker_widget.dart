@@ -230,10 +230,20 @@ class _SuperMediaPickerState<T extends Object>
     List<SuperMediaItem> oldItems,
     List<SuperMediaItem> newItems,
   ) {
-    final previousIds = oldItems.map((item) => item.id).toSet();
-    final visibleIds = _controller.items.map((item) => item.id).toSet();
+    if (!widget.config.allowMultiple) {
+      if (newItems.isEmpty) return;
+      final incoming = newItems.last;
+      if (_controller.items.any((item) => item.hasSameSource(incoming))) return;
+      _controller.setItems([incoming], resetRemoved: false, notify: false);
+      _notifyInitialItemsChanged();
+      return;
+    }
     final additions = newItems.where(
-      (item) => !previousIds.contains(item.id) && !visibleIds.contains(item.id),
+      (item) =>
+          !oldItems.any((oldItem) => oldItem.hasSameSource(item)) &&
+          !_controller.items.any(
+            (visibleItem) => visibleItem.hasSameSource(item),
+          ),
     );
     if (additions.isEmpty) return;
     _controller.setItems(
@@ -241,6 +251,10 @@ class _SuperMediaPickerState<T extends Object>
       resetRemoved: false,
       notify: false,
     );
+    _notifyInitialItemsChanged();
+  }
+
+  void _notifyInitialItemsChanged() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) widget.onChanged?.call(_controller.result);
     });
@@ -265,6 +279,9 @@ class _SuperMediaPickerState<T extends Object>
   }
 
   bool get _canAdd {
+    if (!widget.config.allowMultiple && _controller.items.isNotEmpty) {
+      return false;
+    }
     final max = widget.config.limits.maxItems;
     return max == null || _controller.items.length < max;
   }
