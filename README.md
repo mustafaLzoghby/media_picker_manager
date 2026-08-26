@@ -59,7 +59,7 @@ Or add it manually:
 
 ```yaml
 dependencies:
-  media_picker_manager: ^0.1.3
+  media_picker_manager: ^0.1.4
 ```
 
 The package automatically installs `image_picker`, `file_picker`, `cross_file`,
@@ -238,6 +238,11 @@ SuperImagePicker(
 SuperImagePicker(
   config: SuperMediaPickerConfig(
     sourcePresentation: SuperMediaSourcePresentation.dialog,
+    text: const SuperMediaTextConfig(
+      chooseSource: 'Select image source',
+      images: 'Gallery',
+      takePhoto: 'Camera',
+    ),
     icons: SuperMediaIconConfig(
       images: Image.asset('assets/gallery.png', width: 28),
       takePhoto: MyCameraSvg(),
@@ -265,6 +270,10 @@ SuperImagePicker(
   ),
 )
 ```
+
+`chooseSource` controls the dialog title. `images`, `takePhoto`, `videos`,
+`recordVideo`, and `files` control the source button labels. The matching
+properties in `SuperMediaIconConfig` control their widgets.
 
 Use `sourceOptionBuilder` to replace every default bottom-sheet or dialog
 button while keeping the built-in navigation:
@@ -800,9 +809,10 @@ SuperMediaPickerConfig(
 
 ## Device language and localization
 
-The picker follows the device locale automatically. English, Arabic, French,
-Spanish, German, and Turkish are included, with English as the fallback.
-Arabic, Persian, Hebrew, and Urdu locales automatically use RTL layout.
+The picker follows the application's active locale and text direction first,
+then falls back to the device locale. English, Arabic, French, Spanish, German,
+and Turkish are included, with English as the fallback. Arabic, Persian,
+Hebrew, and Urdu automatically use RTL layout.
 
 Force a locale when the app has its own language selector:
 

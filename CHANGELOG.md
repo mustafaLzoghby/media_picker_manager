@@ -1,3 +1,9 @@
+## 0.1.4
+
+- Fixed localization to follow the application's active locale and text
+  direction before falling back to the device locale.
+- Documented full dialog title, source-label, and widget-icon customization.
+
 ## 0.1.3
 
 - Added shared, empty-state, and non-empty-state width/height controls for the

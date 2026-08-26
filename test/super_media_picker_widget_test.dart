@@ -136,10 +136,40 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: Scaffold(
           body: SuperMediaPicker(
             config: SuperMediaPickerConfig(locale: Locale('ar')),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('إضافة وسائط'), findsOneWidget);
+    final directionality = tester.widget<Directionality>(
+      find
+          .ancestor(
+            of: find.text('إضافة وسائط'),
+            matching: find.byType(Directionality),
+          )
+          .first,
+    );
+    expect(directionality.textDirection, TextDirection.rtl);
+  });
+
+  testWidgets('follows the application locale and direction before device', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Localizations(
+            locale: Locale('ar'),
+            delegates: [DefaultWidgetsLocalizations.delegate],
+            child: Directionality(
+              textDirection: TextDirection.rtl,
+              child: SuperMediaPicker(),
+            ),
           ),
         ),
       ),

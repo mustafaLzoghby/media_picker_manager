@@ -106,7 +106,12 @@ class _MediaDemoPageState extends State<MediaDemoPage> {
               alignment: AlignmentDirectional.centerStart,
               config: const SuperMediaPickerConfig(
                 sourcePresentation: SuperMediaSourcePresentation.dialog,
-                text: SuperMediaTextConfig(addMedia: 'upload'),
+                text: SuperMediaTextConfig(
+                  addMedia: 'upload',
+                  chooseSource: 'Choose image source',
+                  images: 'Gallery',
+                  takePhoto: 'Camera',
+                ),
                 icons: SuperMediaIconConfig(
                   images: Icon(Icons.photo_library_outlined),
                   takePhoto: Icon(Icons.photo_camera_outlined),

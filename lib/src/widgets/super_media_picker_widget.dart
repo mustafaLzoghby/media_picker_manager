@@ -728,7 +728,9 @@ class _SuperMediaPickerState<T extends Object>
   }
 
   Locale _locale(BuildContext context) {
-    return widget.config.locale ?? View.of(context).platformDispatcher.locale;
+    return widget.config.locale ??
+        Localizations.maybeLocaleOf(context) ??
+        View.of(context).platformDispatcher.locale;
   }
 
   TextDirection _textDirection(BuildContext context) {
@@ -736,9 +738,20 @@ class _SuperMediaPickerState<T extends Object>
       return widget.config.textDirection!;
     }
     const rtlLanguages = {'ar', 'fa', 'he', 'ur'};
-    return rtlLanguages.contains(_locale(context).languageCode.toLowerCase())
-        ? TextDirection.rtl
-        : TextDirection.ltr;
+    TextDirection directionFor(Locale locale) =>
+        rtlLanguages.contains(locale.languageCode.toLowerCase())
+            ? TextDirection.rtl
+            : TextDirection.ltr;
+
+    if (widget.config.locale != null) {
+      return directionFor(widget.config.locale!);
+    }
+    final applicationLocale = Localizations.maybeLocaleOf(context);
+    if (applicationLocale != null &&
+        rtlLanguages.contains(applicationLocale.languageCode.toLowerCase())) {
+      return TextDirection.rtl;
+    }
+    return Directionality.maybeOf(context) ?? directionFor(_locale(context));
   }
 
   Widget _buildItemWithReorder(SuperMediaItem item, int index) {
